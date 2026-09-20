@@ -15,6 +15,7 @@ export class ServiceItemsComponent implements OnInit {
   applicationId: number | null = null;
   applicationName: string | null = null;
   selectedProcessDefinitionId: number | null = null;
+  isCreating = false;
 
   constructor(private route: ActivatedRoute) { }
 

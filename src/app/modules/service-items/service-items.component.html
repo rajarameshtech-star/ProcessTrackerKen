@@ -1,14 +1,14 @@
 <!-- modules/service-items/service-items.component.html -->
 <h2>Service Items {{ applicationName ? '- ' + applicationName : '' }}</h2>
-<app-process-definition-select 
-  [applicationId]="applicationId"
+<app-process-definition-select [applicationId]="applicationId"
   (processDefinitionSelected)="onProcessDefinitionSelected($event)">
 </app-process-definition-select>
-<app-service-item-create 
-  [applicationId]="applicationId"
-  [selectedProcessDefinitionId]="selectedProcessDefinitionId">
+<app-service-item-create [applicationId]="applicationId" [selectedProcessDefinitionId]="selectedProcessDefinitionId"
+  (formActive)="isCreating = $event">
 </app-service-item-create>
-<app-service-item-table 
-  [selectedProcessDefinitionId]="selectedProcessDefinitionId"
-  [applicationId]="applicationId">
-</app-service-item-table>
+@if (!isCreating) {
+<div>
+  <app-service-item-table [selectedProcessDefinitionId]="selectedProcessDefinitionId" [applicationId]="applicationId">
+  </app-service-item-table>
+</div>
+}

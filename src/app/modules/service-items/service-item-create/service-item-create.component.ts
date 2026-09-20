@@ -1,5 +1,5 @@
 // modules/service-items/service-item-create/service-item-create.component.ts
-import { Component, OnInit, Input } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -21,6 +21,7 @@ import { ServiceItemFormComponent } from '../service-item-form/service-item-form
 export class ServiceItemCreateComponent implements OnInit {
   @Input() applicationId: number | null = null;
   @Input() selectedProcessDefinitionId: number | null = null;
+  @Output() formActive = new EventEmitter<boolean>();
 
   showCreateForm = false;
   applications: Application[] = [];
@@ -61,6 +62,7 @@ export class ServiceItemCreateComponent implements OnInit {
 
   onCreateClick(): void {
     this.showCreateForm = true;
+    this.formActive.emit(true);
   }
 
   onFormSubmit(data: any): void {
@@ -76,6 +78,7 @@ export class ServiceItemCreateComponent implements OnInit {
         this.showCreateForm = false;
         this.selectedAppId = null;
         this.selectedProcDefId = null;
+        this.formActive.emit(false);
         this.loading = false;
       },
       error: (err) => {
@@ -90,5 +93,6 @@ export class ServiceItemCreateComponent implements OnInit {
     this.showCreateForm = false;
     this.selectedAppId = null;
     this.selectedProcDefId = null;
+    this.formActive.emit(false);
   }
 }

@@ -1,1 +1,49 @@
-<p>filter-panel works!</p>
+<div [style.border]="'1px solid #ddd'" [style.padding.px]="15" [style.border-radius.px]="4"
+  [style.background-color]="'#fafafa'" [style.margin-bottom.px]="15">
+  <div [style.display]="'flex'" [style.justify-content]="'space-between'" [style.align-items]="'center'"
+    [style.margin-bottom.px]="10">
+    <h4 [style.margin]="'0'">Filter Records</h4>
+  </div>
+
+  <form [formGroup]="filterForm" [style.display]="'flex'" [style.flex-wrap]="'wrap'" [style.gap.px]="15"
+    [style.align-items]="'flex-end'">
+    @for (field of processFields; track field.id) {
+    <div [style.display]="'flex'" [style.flex-direction]="'column'" [style.gap.px]="5" [style.width.px]="200">
+      <label [style.font-size.px]="12" [style.font-weight]="'600'">{{ field.label }}</label>
+
+      @if (field.fieldType === FieldTypeText || field.fieldType === FieldTypeEmail || field.fieldType === FieldTypePhone
+      || field.fieldType === FieldTypeUrl || field.fieldType === FieldTypeTextArea) {
+      <kendo-textbox [formControlName]="field.fieldName"
+        [placeholder]="field.placeholder || 'Filter by ' + field.label">
+      </kendo-textbox>
+      }
+
+      @if (field.fieldType === FieldTypeNumber) {
+      <kendo-numerictextbox [formControlName]="field.fieldName" [placeholder]="'Filter'">
+      </kendo-numerictextbox>
+      }
+
+      @if (field.fieldType === FieldTypeDate || field.fieldType === FieldTypeDateTime) {
+      <kendo-datepicker [formControlName]="field.fieldName" [placeholder]="'Select Date'">
+      </kendo-datepicker>
+      }
+
+      @if (field.fieldType === FieldTypeDropdown) {
+      <kendo-dropdownlist [data]="parsedOptions[field.fieldName]" [formControlName]="field.fieldName" textField="label"
+        valueField="value" [valuePrimitive]="true" [defaultItem]="defaultDropdownItem">
+      </kendo-dropdownlist>
+      }
+
+      @if (field.fieldType === FieldTypeCheckbox) {
+      <input type="checkbox" [formControlName]="field.fieldName" />
+      }
+
+    </div>
+    }
+
+    <div [style.display]="'flex'" [style.gap.px]="10">
+      <button kendoButton type="button" (click)="applyFilter()" themeColor="primary">Filter</button>
+      <button kendoButton type="button" (click)="clearFilter()">Clear</button>
+    </div>
+  </form>
+</div>
