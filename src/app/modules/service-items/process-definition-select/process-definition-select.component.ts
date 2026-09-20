@@ -1,5 +1,5 @@
 // modules/service-items/process-definition-select/process-definition-select.component.ts
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -13,8 +13,9 @@ import { ProcessDefinition } from '../../../core/models/process-definition.model
   imports: [CommonModule, FormsModule, DropDownsModule, ButtonsModule],
   templateUrl: './process-definition-select.component.html'
 })
-export class ProcessDefinitionSelectComponent implements OnInit {
+export class ProcessDefinitionSelectComponent implements OnInit, OnChanges {
   @Input() applicationId: number | null = null;
+  @Input() initialProcessDefinitionId: number | null = null;
   @Output() processDefinitionSelected = new EventEmitter<number>();
 
   processDefinitions: ProcessDefinition[] = [];
@@ -25,6 +26,12 @@ export class ProcessDefinitionSelectComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadProcessDefinitions();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['initialProcessDefinitionId'] && this.initialProcessDefinitionId) {
+      this.selectedProcessDefinitionId = this.initialProcessDefinitionId;
+    }
   }
 
   loadProcessDefinitions(): void {
@@ -42,14 +49,14 @@ export class ProcessDefinitionSelectComponent implements OnInit {
   }
 
 
-onProcessDefinitionChange(event: any): void {
-  this.selectedProcessDefinitionId = event.id;
-}
-
-onShow(): void {
-  if (this.selectedProcessDefinitionId) {
-    this.processDefinitionSelected.emit(this.selectedProcessDefinitionId);
+  onProcessDefinitionChange(event: any): void {
+    this.selectedProcessDefinitionId = event.id;
   }
-}
+
+  onShow(): void {
+    if (this.selectedProcessDefinitionId) {
+      this.processDefinitionSelected.emit(this.selectedProcessDefinitionId);
+    }
+  }
 
 }

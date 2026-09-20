@@ -1,14 +1,18 @@
 <!-- modules/service-items/service-items.component.html -->
-<h2>Service Items {{ applicationName ? '- ' + applicationName : '' }}</h2>
+<div [style.display]="'flex'" [style.justify-content]="'space-between'" [style.align-items]="'center'"
+  [style.margin-bottom.px]="15">
+  <h2 [style.margin]="0">Service Items {{ applicationName ? '- ' + applicationName : '' }}</h2>
+  <button kendoButton themeColor="primary" (click)="onCreateNew()">
+    Create New Service Item
+  </button>
+</div>
+
 <app-process-definition-select [applicationId]="applicationId"
+  [initialProcessDefinitionId]="selectedProcessDefinitionId"
   (processDefinitionSelected)="onProcessDefinitionSelected($event)">
 </app-process-definition-select>
-<app-service-item-create [applicationId]="applicationId" [selectedProcessDefinitionId]="selectedProcessDefinitionId"
-  (formActive)="isCreating = $event">
-</app-service-item-create>
-@if (!isCreating) {
+
 <div>
   <app-service-item-table [selectedProcessDefinitionId]="selectedProcessDefinitionId" [applicationId]="applicationId">
   </app-service-item-table>
 </div>
-}

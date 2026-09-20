@@ -7,10 +7,10 @@ export class ToastService {
   constructor() { }
 
   showSuccess(message: string): void {
-    console.log('Success:', message);
+    window.alert(`✅ Success: ${message}`);
   }
 
   showError(message: string): void {
-    console.log('Error:', message);
+    window.alert(`❌ Error: ${message}`);
   }
 }

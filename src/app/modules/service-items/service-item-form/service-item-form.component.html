@@ -1,7 +1,9 @@
 <!-- modules/service-items/service-item-form/service-item-form.component.html -->
 <div [style.border]="'1px solid #ddd'" [style.padding.px]="15" [style.border-radius.px]="4"
   [style.background-color]="'#fafafa'">
-  <h3>{{ isEditMode ? 'Edit' : 'View' }} Service Item</h3>
+  @if (mode !== 'create') {
+  <h3>{{ mode === 'edit' ? 'Edit' : 'View' }} Service Item</h3>
+  }
 
   <form [formGroup]="form" [style.display]="'flex'" [style.flex-direction]="'column'" [style.gap.px]="15">
     @for (field of processFields; track field.id) {
@@ -16,46 +18,45 @@
       <!-- Text, Email, Phone, Url Input -->
       @if (field.fieldType === FieldTypeText || field.fieldType === FieldTypeEmail || field.fieldType === FieldTypePhone
       || field.fieldType === FieldTypeUrl) {
-      <kendo-textbox [formControlName]="field.fieldName" [placeholder]="field.placeholder || ''"
-        [disabled]="!isEditMode">
+      <kendo-textbox [formControlName]="field.fieldName" [placeholder]="field.placeholder || ''">
       </kendo-textbox>
       }
 
       <!-- TextArea -->
       @if (field.fieldType === FieldTypeTextArea) {
-      <textarea [formControlName]="field.fieldName" [placeholder]="field.placeholder || ''" [disabled]="!isEditMode"
+      <textarea [formControlName]="field.fieldName" [placeholder]="field.placeholder || ''"
         [style.border]="'1px solid #ccc'" [style.padding.px]="8" [style.border-radius.px]="4" rows="4">
           </textarea>
       }
 
       <!-- Number Input -->
       @if (field.fieldType === FieldTypeNumber) {
-      <kendo-numerictextbox [formControlName]="field.fieldName" [disabled]="!isEditMode">
+      <kendo-numerictextbox [formControlName]="field.fieldName">
       </kendo-numerictextbox>
       }
 
       <!-- Date Input -->
       @if (field.fieldType === FieldTypeDate) {
-      <kendo-datepicker [formControlName]="field.fieldName" [disabled]="!isEditMode">
+      <kendo-datepicker [formControlName]="field.fieldName">
       </kendo-datepicker>
       }
 
       <!-- DateTime Input -->
       @if (field.fieldType === FieldTypeDateTime) {
-      <kendo-datetimepicker [formControlName]="field.fieldName" [disabled]="!isEditMode">
+      <kendo-datetimepicker [formControlName]="field.fieldName">
       </kendo-datetimepicker>
       }
 
       <!-- Dropdown -->
       @if (field.fieldType === FieldTypeDropdown) {
-      <kendo-dropdownlist [data]="getFieldOptions(field)" [formControlName]="field.fieldName" textField="label"
-        valueField="value" [valuePrimitive]="true" [disabled]="!isEditMode">
+      <kendo-dropdownlist [data]="parsedOptions[field.fieldName]" [formControlName]="field.fieldName" textField="label"
+        valueField="value" [valuePrimitive]="true" [defaultItem]="defaultDropdownItem">
       </kendo-dropdownlist>
       }
 
       <!-- Checkbox -->
       @if (field.fieldType === FieldTypeCheckbox) {
-      <input type="checkbox" [formControlName]="field.fieldName" [disabled]="!isEditMode">
+      <input type="checkbox" [formControlName]="field.fieldName">
       }
     </div>
     }
@@ -64,9 +65,10 @@
       <button kendoButton type="button" (click)="onCancelClick()">
         Cancel
       </button>
-      @if (isEditMode) {
-      <button kendoButton type="button" appearance="filled" [disabled]="loading" (click)="onSubmitClick()">
-        {{ loading ? 'Updating...' : 'Update' }}
+      @if (mode !== 'view') {
+      <button kendoButton type="button" appearance="filled" [disabled]="loading" (click)="onSubmitClick()"
+        themeColor="primary">
+        {{ loading ? (mode === 'edit' ? 'Updating...' : 'Creating...') : (mode === 'edit' ? 'Update' : 'Create') }}
       </button>
       }
     </div>

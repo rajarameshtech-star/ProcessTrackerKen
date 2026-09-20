@@ -41,7 +41,7 @@
 @if (viewEditMode && selectedRecordId) {
 <div>
   <app-service-item-form [processDefinitionId]="selectedProcessDefinitionId" [recordId]="selectedRecordId"
-    [isEditMode]="viewEditMode === 'edit'" (onCancel)="onFormClose()">
+    [mode]="viewEditMode" (onCancel)="onFormClose()">
   </app-service-item-form>
 </div>
 }

@@ -1,5 +1,6 @@
 // modules/service-items/service-item-create/service-item-create.component.ts
-import { Component, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
+import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
@@ -19,11 +20,6 @@ import { ServiceItemFormComponent } from '../service-item-form/service-item-form
   templateUrl: './service-item-create.component.html'
 })
 export class ServiceItemCreateComponent implements OnInit {
-  @Input() applicationId: number | null = null;
-  @Input() selectedProcessDefinitionId: number | null = null;
-  @Output() formActive = new EventEmitter<boolean>();
-
-  showCreateForm = false;
   applications: Application[] = [];
   processDefinitions: ProcessDefinition[] = [];
   selectedAppId: number | null = null;
@@ -34,10 +30,21 @@ export class ServiceItemCreateComponent implements OnInit {
     private applicationService: ApplicationService,
     private processDefinitionService: ProcessDefinitionService,
     private processRecordService: ProcessRecordService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private router: Router,
+    private route: ActivatedRoute
   ) { }
 
   ngOnInit(): void {
+    this.route.queryParams.subscribe(params => {
+      if (params['applicationId']) {
+        this.selectedAppId = Number(params['applicationId']);
+      }
+      if (params['processDefinitionId']) {
+        this.selectedProcDefId = Number(params['processDefinitionId']);
+      }
+    });
+
     this.loadApplications();
     this.loadProcessDefinitions();
   }
@@ -60,10 +67,7 @@ export class ServiceItemCreateComponent implements OnInit {
     });
   }
 
-  onCreateClick(): void {
-    this.showCreateForm = true;
-    this.formActive.emit(true);
-  }
+
 
   onFormSubmit(data: any): void {
     if (!this.selectedAppId || !this.selectedProcDefId) {
@@ -75,11 +79,14 @@ export class ServiceItemCreateComponent implements OnInit {
     this.processRecordService.createRecord(this.selectedProcDefId, this.selectedAppId, { fieldValues: data }).subscribe({
       next: (response) => {
         this.toastService.showSuccess('Service Item created successfully');
-        this.showCreateForm = false;
-        this.selectedAppId = null;
-        this.selectedProcDefId = null;
-        this.formActive.emit(false);
         this.loading = false;
+        this.router.navigate(['/service-items'], {
+          queryParams: {
+            applicationId: this.selectedAppId,
+            processDefinitionId: this.selectedProcDefId
+          },
+          queryParamsHandling: 'merge'
+        });
       },
       error: (err) => {
         console.error('Error creating service item:', err);
@@ -90,9 +97,6 @@ export class ServiceItemCreateComponent implements OnInit {
   }
 
   onFormCancel(): void {
-    this.showCreateForm = false;
-    this.selectedAppId = null;
-    this.selectedProcDefId = null;
-    this.formActive.emit(false);
+    this.router.navigate(['/service-items'], { queryParamsHandling: 'preserve' });
   }
 }

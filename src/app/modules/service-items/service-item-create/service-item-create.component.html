@@ -1,11 +1,4 @@
 <!-- modules/service-items/service-item-create/service-item-create.component.html -->
-<div [style.margin-bottom.px]="20">
-  <button kendoButton [disabled]="loading" (click)="onCreateClick()">
-    Create New Service Item
-  </button>
-</div>
-
-@if (showCreateForm) {
 <div [style.border]="'1px solid #ddd'" [style.padding.px]="15" [style.margin-bottom.px]="20"
   [style.border-radius.px]="4" [style.background-color]="'#fafafa'">
   <h3>Create New Service Item</h3>
@@ -26,10 +19,9 @@
 
   @if (selectedAppId && selectedProcDefId) {
   <div>
-    <app-service-item-form [processDefinitionId]="selectedProcDefId" [isEditMode]="false"
-      (onSubmit)="onFormSubmit($event)" (onCancel)="onFormCancel()">
+    <app-service-item-form [processDefinitionId]="selectedProcDefId" mode="create" (onSubmit)="onFormSubmit($event)"
+      (onCancel)="onFormCancel()">
     </app-service-item-form>
   </div>
   }
 </div>
-}
