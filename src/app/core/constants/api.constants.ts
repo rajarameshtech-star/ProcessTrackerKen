@@ -30,5 +30,11 @@ export const API_ENDPOINTS = {
   },
   processes: {
     getDefinition: '/processes/{processId}'
+  },
+  processFields: {
+    base: '/process-fields',
+    getById: '/process-fields/{id}',
+    getByProcessDefinition: '/process-fields/process/{processDefinitionId}',
+    toggleStatus: '/process-fields/{id}/toggle-status'
   }
 };

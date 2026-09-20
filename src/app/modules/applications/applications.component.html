@@ -1,2 +1,9 @@
-<h2>Applications</h2>
+<div [style.display]="'flex'" [style.justify-content]="'space-between'" [style.align-items]="'center'"
+    [style.margin-bottom.px]="15">
+    <h2 [style.margin]="0">Applications</h2>
+    <button kendoButton themeColor="primary" (click)="onCreateNew()">
+        Create New Application
+    </button>
+</div>
+
 <app-application-list></app-application-list>

@@ -6,15 +6,17 @@ import { InputsModule } from '@progress/kendo-angular-inputs';
 import { DropDownsModule } from '@progress/kendo-angular-dropdowns';
 import { DateInputsModule } from '@progress/kendo-angular-dateinputs';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
+import { DialogModule } from '@progress/kendo-angular-dialog';
 import { ProcessDefinitionService } from '../../../core/services/process-definition.service';
 import { ProcessRecordService } from '../../../core/services/process-record.service';
 import { ToastService } from '../../../shared/utils/toast.service';
 import { ProcessField } from '../../../core/models/process-field.model';
+import { ProcessRecord } from '../../../core/models/process-record.model';
 
 @Component({
   selector: 'app-service-item-form',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, InputsModule, DropDownsModule, DateInputsModule, ButtonsModule],
+  imports: [CommonModule, FormsModule, ReactiveFormsModule, InputsModule, DropDownsModule, DateInputsModule, ButtonsModule, DialogModule],
   templateUrl: './service-item-form.component.html'
 })
 export class ServiceItemFormComponent implements OnInit, OnChanges {
@@ -29,6 +31,10 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
   parsedOptions: { [fieldName: string]: any[] } = {};
   public defaultDropdownItem: { label: string, value: any } = { label: '-- Select --', value: null };
   loading = false;
+
+  loadedRecord: ProcessRecord | null = null;
+  isSubmitDialogOpen = false;
+  submitNotes = '';
 
   // Field type constants
   readonly FieldTypeText = 0;
@@ -105,6 +111,7 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
     this.processRecordService.getRecordById(this.processDefinitionId, this.recordId).subscribe({
       next: (record: any) => {
         console.log('Loaded record:', record);
+        this.loadedRecord = record;
 
         // Reverse cast string dictionaries logically back to Kendo-compatible types
         const patchedValues: any = {};
@@ -139,7 +146,33 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
     });
   }
 
+  onMarkCompletedClick(): void {
+    this.submitNotes = '';
+    this.isSubmitDialogOpen = true;
+  }
 
+  confirmSubmit(): void {
+    if (!this.processDefinitionId || !this.recordId) return;
+    this.loading = true;
+
+    // According to req: POST /api/processes/{processDefId}/records/{recordId}/submit
+    // with { notes: string } payload.
+    this.processRecordService.submitRecord(this.processDefinitionId, this.recordId, { notes: this.submitNotes }).subscribe({
+      next: (res) => {
+        this.toastService.showSuccess('Record marked as completed successfully!');
+        if (this.loadedRecord) {
+          this.loadedRecord.recordStatus = 'Submitted';
+        }
+        this.isSubmitDialogOpen = false;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Error submitting record:', err);
+        this.toastService.showError(err.error?.message || 'Failed to submit record');
+        this.loading = false;
+      }
+    });
+  }
 
   onSubmitClick(): void {
     if (this.form.invalid) {

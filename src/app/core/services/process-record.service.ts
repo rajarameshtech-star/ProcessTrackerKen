@@ -27,9 +27,13 @@ export class ProcessRecordService {
   }
 
   createRecord(processId: number, applicationId: number, data: { fieldValues: { [key: string]: string } }): Observable<ProcessRecord> {
+    const payload = {
+      ...data,
+      applicationId: applicationId
+    };
     return this.http.post<ProcessRecord>(
       `${API_BASE_URL}${API_ENDPOINTS.processRecords.create.replace('{processId}', processId.toString())}`,
-      data
+      payload
     );
   }
 
@@ -59,15 +63,18 @@ export class ProcessRecordService {
     );
   }
 
-  searchRecords(processId: number, filters: any, pageNumber: number = 1, pageSize: number = 20): Observable<PaginatedResponse<ProcessRecord>> {
+  searchRecords(processId: number, applicationId: number | null, filters: any, pageNumber: number = 1, pageSize: number = 20): Observable<PaginatedResponse<ProcessRecord>> {
     const payload = {
       filters,
       pageNumber,
       pageSize
     };
-    return this.http.post<PaginatedResponse<ProcessRecord>>(
-      `${API_BASE_URL}${API_ENDPOINTS.processRecords.search.replace('{processId}', processId.toString())}`,
-      payload
-    );
+
+    let url = `${API_BASE_URL}${API_ENDPOINTS.processRecords.search.replace('{processId}', processId.toString())}`;
+    if (applicationId) {
+      url += `?applicationId=${applicationId}`;
+    }
+
+    return this.http.post<PaginatedResponse<ProcessRecord>>(url, payload);
   }
 }

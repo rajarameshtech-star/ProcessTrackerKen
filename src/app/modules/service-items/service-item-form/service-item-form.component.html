@@ -61,16 +61,54 @@
     </div>
     }
 
-    <div [style.display]="'flex'" [style.gap.px]="10" [style.justify-content]="'flex-end'" [style.margin-top.px]="20">
-      <button kendoButton type="button" (click)="onCancelClick()">
-        Cancel
-      </button>
-      @if (mode !== 'view') {
-      <button kendoButton type="button" appearance="filled" [disabled]="loading" (click)="onSubmitClick()"
-        themeColor="primary">
-        {{ loading ? (mode === 'edit' ? 'Updating...' : 'Creating...') : (mode === 'edit' ? 'Update' : 'Create') }}
-      </button>
-      }
+    <div [style.display]="'flex'" [style.justify-content]="'space-between'" [style.align-items]="'center'"
+      [style.margin-top.px]="20">
+
+      <!-- Mark as Complete Hook purely limited to View/Edit -->
+      <div [style.display]="'flex'" [style.gap.px]="10">
+        @if (loadedRecord) {
+        @if (loadedRecord.recordStatus === 'Submitted') {
+        <span [style.color]="'green'" [style.font-weight]="'600'" [style.display]="'flex'"
+          [style.align-items]="'center'">
+          <span class="k-icon k-i-check k-icon-md" [style.margin-right.px]="5"></span> Completed
+        </span>
+        } @else {
+        <button kendoButton type="button" themeColor="success" (click)="onMarkCompletedClick()">
+          Mark as Completed
+        </button>
+        }
+        }
+      </div>
+
+      <!-- Native Cancel / Save Operations -->
+      <div [style.display]="'flex'" [style.gap.px]="10">
+        <button kendoButton type="button" (click)="onCancelClick()">
+          Cancel
+        </button>
+        @if (mode !== 'view') {
+        <button kendoButton type="button" appearance="filled" [disabled]="loading" (click)="onSubmitClick()"
+          themeColor="primary">
+          {{ loading ? (mode === 'edit' ? 'Updating...' : 'Creating...') : (mode === 'edit' ? 'Update' : 'Create') }}
+        </button>
+        }
+      </div>
     </div>
   </form>
 </div>
+
+<!-- Dedicated Complete Submission Warning Modal -->
+@if (isSubmitDialogOpen) {
+<kendo-dialog title="Mark Record as Completed" (close)="isSubmitDialogOpen = false" [width]="450">
+  <div [style.margin-bottom.px]="15">
+    <label [style.display]="'block'" [style.font-weight]="'500'" [style.margin-bottom.px]="5">Closing Notes
+      (Optional)</label>
+    <textarea [(ngModel)]="submitNotes" rows="4" [style.width]="'100%'" [style.border]="'1px solid #ccc'"
+      [style.padding.px]="8" [style.border-radius.px]="4">
+      </textarea>
+  </div>
+  <div [style.display]="'flex'" [style.justify-content]="'flex-end'" [style.gap.px]="10">
+    <button kendoButton (click)="isSubmitDialogOpen = false">Cancel</button>
+    <button kendoButton themeColor="success" [disabled]="loading" (click)="confirmSubmit()">Confirm Submit</button>
+  </div>
+</kendo-dialog>
+}

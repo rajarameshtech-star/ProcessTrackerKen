@@ -26,9 +26,11 @@
         <button kendoButton [disabled]="loading" (click)="onView(dataItem.id)" [style.margin-right.px]="5">
           View
         </button>
+        @if (dataItem.recordStatus !== 'Submitted') {
         <button kendoButton [disabled]="loading" (click)="onEdit(dataItem.id)" [style.margin-right.px]="5">
           Edit
         </button>
+        }
         <button kendoButton [disabled]="loading" (click)="onDelete(dataItem.id)">
           Delete
         </button>

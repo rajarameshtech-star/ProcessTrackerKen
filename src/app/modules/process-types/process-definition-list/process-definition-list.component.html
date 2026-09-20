@@ -1,1 +1,41 @@
-<p>process-definition-list works!</p>
+<kendo-grid [data]="processDefinitions" [pageSize]="pageSize" [skip]="(pageNumber - 1) * pageSize"
+    (pageChange)="onPageChange($event)" [loading]="loading" [pageable]="true" [sortable]="true">
+
+    <kendo-grid-column field="id" title="ID" [width]="50"></kendo-grid-column>
+    <kendo-grid-column field="code" title="Token Code" [width]="100"></kendo-grid-column>
+    <kendo-grid-column field="name" title="Process Name" [width]="200"></kendo-grid-column>
+    <kendo-grid-column field="description" title="Description" [width]="250"></kendo-grid-column>
+
+    <kendo-grid-column field="isActive" title="Active Status" [width]="120">
+        <ng-template kendoGridCellTemplate let-dataItem>
+            <span [style.color]="dataItem.isActive ? 'green' : 'red'" [style.font-weight]="'600'">
+                {{ dataItem.isActive ? 'Active' : 'Inactive' }}
+            </span>
+        </ng-template>
+    </kendo-grid-column>
+
+
+    <kendo-grid-column title="Actions" [width]="350">
+        <ng-template kendoGridCellTemplate let-dataItem>
+            <button kendoButton title="Manage Associated Fields" (click)="manageFields(dataItem)"
+                [style.margin-right.px]="5">
+                Manage Fields
+            </button>
+            <button kendoButton themeColor="primary" (click)="openDialog(dataItem)" [style.margin-right.px]="5">
+                Edit
+            </button>
+            <button kendoButton [themeColor]="dataItem.isActive ? 'error' : 'secondary'"
+                (click)="toggleActive(dataItem)">
+                {{ dataItem.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+        </ng-template>
+    </kendo-grid-column>
+</kendo-grid>
+
+@if (isDialogOpen) {
+<kendo-dialog [title]="dialogMode === 'edit' ? 'Edit Process Types' : 'Create Process Type'" (close)="closeDialog()">
+    <app-process-definition-dialog [processDefinition]="selectedDefinition" (save)="saveDefinition($event)"
+        (cancel)="closeDialog()">
+    </app-process-definition-dialog>
+</kendo-dialog>
+}

@@ -13,6 +13,7 @@ export interface ProcessField {
   min: number;
   max: number;
   pattern: string;
+  isActive: boolean;
 }
 
 export enum FieldType {

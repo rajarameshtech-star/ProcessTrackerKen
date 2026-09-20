@@ -1,1 +1,46 @@
-<p>application-list works!</p>
+<kendo-grid [data]="applications" [pageSize]="pageSize" [skip]="(pageNumber - 1) * pageSize"
+    (pageChange)="onPageChange($event)" [loading]="loading" [pageable]="true" [sortable]="true">
+
+    <kendo-grid-column field="id" title="ID" [width]="50"></kendo-grid-column>
+    <kendo-grid-column field="title" title="Title" [width]="150"></kendo-grid-column>
+    <kendo-grid-column field="description" title="Description" [width]="250"></kendo-grid-column>
+
+    <kendo-grid-column field="isActive" title="Active Status" [width]="120">
+        <ng-template kendoGridCellTemplate let-dataItem>
+            <span [style.color]="dataItem.isActive ? 'green' : 'red'" [style.font-weight]="'600'">
+                {{ dataItem.isActive ? 'Active' : 'Inactive' }}
+            </span>
+        </ng-template>
+    </kendo-grid-column>
+
+    <kendo-grid-column field="processCount" title="Assigned Processes" [width]="150"></kendo-grid-column>
+    <kendo-grid-column field="createdDate" title="Creation Date" [width]="150">
+        <ng-template kendoGridCellTemplate let-dataItem>
+            {{ dataItem.createdDate | date:'mediumDate' }}
+        </ng-template>
+    </kendo-grid-column>
+
+    <kendo-grid-column title="Actions" [width]="350">
+        <ng-template kendoGridCellTemplate let-dataItem>
+            <button kendoButton title="Open Associated Service Items" (click)="viewServices(dataItem)"
+                [style.margin-right.px]="5">
+                View Service Items
+            </button>
+            <button kendoButton themeColor="primary" (click)="openDialog(dataItem)" [style.margin-right.px]="5">
+                Edit
+            </button>
+            <button kendoButton [themeColor]="dataItem.isActive ? 'error' : 'secondary'"
+                (click)="toggleActive(dataItem)">
+                {{ dataItem.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+        </ng-template>
+    </kendo-grid-column>
+</kendo-grid>
+
+@if (isDialogOpen) {
+<kendo-dialog [title]="dialogMode === 'edit' ? 'Edit Application' : 'Create Application'" (close)="closeDialog()">
+    <app-application-dialog [application]="selectedApplication" (save)="saveApplication($event)"
+        (cancel)="closeDialog()">
+    </app-application-dialog>
+</kendo-dialog>
+}

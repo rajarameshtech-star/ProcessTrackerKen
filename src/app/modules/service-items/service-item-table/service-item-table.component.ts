@@ -1,5 +1,4 @@
-// modules/service-items/service-item-table/service-item-table.component.ts
-import { Component, OnInit, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { GridModule } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
@@ -21,6 +20,7 @@ import { forkJoin } from 'rxjs';
 export class ServiceItemTableComponent implements OnInit, OnChanges {
   @Input() selectedProcessDefinitionId: number | null = null;
   @Input() applicationId: number | null = null;
+  @Output() formActive = new EventEmitter<boolean>();
 
   records: ProcessRecord[] = [];
   processFields: ProcessField[] = [];
@@ -50,6 +50,11 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
       this.activeFilters = {};
       this.pageNumber = 1;
       this.loadData();
+    } else if (changes['applicationId'] && !changes['selectedProcessDefinitionId']) {
+      if (this.selectedProcessDefinitionId) {
+        this.pageNumber = 1;
+        this.loadRecords();
+      }
     }
   }
 
@@ -58,7 +63,7 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
     this.loading = true;
 
     const fieldsReq = this.processDefinitionService.getProcessDefinitionStructure(this.selectedProcessDefinitionId);
-    const recordsReq = this.processRecordService.searchRecords(this.selectedProcessDefinitionId, this.activeFilters, this.pageNumber, this.pageSize);
+    const recordsReq = this.processRecordService.searchRecords(this.selectedProcessDefinitionId, this.applicationId, this.activeFilters, this.pageNumber, this.pageSize);
 
     forkJoin({
       fieldsData: fieldsReq,
@@ -83,7 +88,7 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
     if (!this.selectedProcessDefinitionId) return;
     this.loading = true;
 
-    this.processRecordService.searchRecords(this.selectedProcessDefinitionId, this.activeFilters, this.pageNumber, this.pageSize).subscribe({
+    this.processRecordService.searchRecords(this.selectedProcessDefinitionId, this.applicationId, this.activeFilters, this.pageNumber, this.pageSize).subscribe({
       next: (response: any) => {
         this.records = response.records;
         this.totalCount = response.totalCount;
@@ -105,11 +110,13 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
   onView(recordId: number): void {
     this.selectedRecordId = recordId;
     this.viewEditMode = 'view';
+    this.formActive.emit(true);
   }
 
   onEdit(recordId: number): void {
     this.selectedRecordId = recordId;
     this.viewEditMode = 'edit';
+    this.formActive.emit(true);
   }
 
   onDelete(recordId: number): void {
@@ -132,6 +139,7 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
   onFormClose(): void {
     this.viewEditMode = null;
     this.selectedRecordId = null;
+    this.formActive.emit(false);
     this.loadRecords();
   }
 

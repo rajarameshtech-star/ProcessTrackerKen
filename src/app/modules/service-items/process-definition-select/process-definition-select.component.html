@@ -1,15 +1,9 @@
 <!-- modules/service-items/process-definition-select/process-definition-select.component.html -->
-<div [style.margin-bottom.px]="20" [style.display]="'flex'" [style.gap.px]="10" [style.align-items]="'center'">
-  <kendo-dropdownlist
-    [data]="processDefinitions"
-    (selectionChange)="onProcessDefinitionChange($event)"
-    textField="name"
-    valueField="id"
-    placeholder="Select Process Definition">
+<div [style.display]="'flex'" [style.gap.px]="10" [style.align-items]="'center'">
+  <kendo-dropdownlist [data]="processDefinitions" (selectionChange)="onProcessDefinitionChange($event)" textField="name"
+    valueField="id" placeholder="Select Process Definition">
   </kendo-dropdownlist>
-  <button kendoButton 
-    [disabled]="!selectedProcessDefinitionId || loading"
-    (click)="onShow()">
+  <button kendoButton [disabled]="!selectedProcessDefinitionId || loading" (click)="onShow()">
     Show
   </button>
 </div>

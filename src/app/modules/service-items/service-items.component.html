@@ -1,16 +1,33 @@
 <!-- modules/service-items/service-items.component.html -->
 <div [style.display]="'flex'" [style.justify-content]="'space-between'" [style.align-items]="'center'"
   [style.margin-bottom.px]="15">
-  <h2 [style.margin]="0">Service Items {{ applicationName ? '- ' + applicationName : '' }}</h2>
+  <h2 [style.margin]="0">
+    Service Items {{ applicationName ? '- ' + applicationName : '' }}
+  </h2>
   <button kendoButton themeColor="primary" (click)="onCreateNew()">
     Create New Service Item
   </button>
 </div>
 
-<app-process-definition-select [applicationId]="applicationId"
-  [initialProcessDefinitionId]="selectedProcessDefinitionId"
-  (processDefinitionSelected)="onProcessDefinitionSelected($event)">
-</app-process-definition-select>
+<div [style.display]="'flex'" [style.align-items]="'center'" [style.gap.px]="15" [style.margin-bottom.px]="20">
+  <div [style.flex]="1">
+    <label [style.display]="'block'" [style.margin-bottom.px]="5" [style.font-weight]="'500'">Filter by
+      Application</label>
+    <kendo-dropdownlist [data]="applications" [textField]="'title'" [valueField]="'id'" [valuePrimitive]="true"
+      [defaultItem]="defaultAppItem" [ngModel]="applicationId" (ngModelChange)="onApplicationChange($event)"
+      [style.width]="'100%'">
+    </kendo-dropdownlist>
+  </div>
+
+  <div [style.flex]="1">
+    <label [style.display]="'block'" [style.margin-bottom.px]="5" [style.font-weight]="'500'">Select Process Type {{
+      applicationName ? 'for ' + applicationName : '' }}</label>
+    <app-process-definition-select [applicationId]="applicationId"
+      [initialProcessDefinitionId]="selectedProcessDefinitionId"
+      (processDefinitionSelected)="onProcessDefinitionSelected($event)">
+    </app-process-definition-select>
+  </div>
+</div>
 
 <div>
   <app-service-item-table [selectedProcessDefinitionId]="selectedProcessDefinitionId" [applicationId]="applicationId">

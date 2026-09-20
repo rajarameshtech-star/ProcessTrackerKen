@@ -15,6 +15,7 @@ export const routes: Routes = [
       { path: 'service-items', component: ServiceItemsComponent },
       { path: 'service-items/create', component: ServiceItemCreateComponent },
       { path: 'process-types', component: ProcessTypesComponent },
+      { path: 'process-fields', loadComponent: () => import('./modules/process-fields/process-fields.component').then(m => m.ProcessFieldsComponent) },
       { path: '', redirectTo: 'applications', pathMatch: 'full' }
     ]
   },

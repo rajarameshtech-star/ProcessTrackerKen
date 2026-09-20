@@ -1,1 +1,34 @@
-<p>process-definition-dialog works!</p>
+<form [formGroup]="form" class="k-form k-form-horizontal" [style.display]="'flex'" [style.flex-direction]="'column'"
+    [style.gap.px]="15">
+    <div class="k-form-field" [style.display]="'flex'" [style.flex-direction]="'column'" [style.gap.px]="5">
+        <label class="k-label" [style.font-weight]="'500'">Process Code <span [style.color]="'red'"
+                *ngIf="!processDefinition">*</span></label>
+        <kendo-textbox formControlName="code" placeholder="e.g. INC, CHG"></kendo-textbox>
+        @if (form.get('code')?.invalid && form.get('code')?.touched) {
+        <div [style.color]="'red'" [style.font-size.px]="12">Unique Code is required (max 10 chars).</div>
+        }
+    </div>
+
+    <div class="k-form-field" [style.display]="'flex'" [style.flex-direction]="'column'" [style.gap.px]="5">
+        <label class="k-label" [style.font-weight]="'500'">Process Name <span [style.color]="'red'">*</span></label>
+        <kendo-textbox formControlName="name" placeholder="Enter concise process name"></kendo-textbox>
+        @if (form.get('name')?.invalid && form.get('name')?.touched) {
+        <div [style.color]="'red'" [style.font-size.px]="12">Name is required (min 3 chars).</div>
+        }
+    </div>
+
+    <div class="k-form-field" [style.display]="'flex'" [style.flex-direction]="'column'" [style.gap.px]="5">
+        <label class="k-label" [style.font-weight]="'500'">Description <span [style.color]="'red'">*</span></label>
+        <textarea formControlName="description" placeholder="Enter a detailed description..." rows="4"
+            [style.border]="'1px solid #ccc'" [style.padding.px]="8" [style.border-radius.px]="4">
+    </textarea>
+        @if (form.get('description')?.invalid && form.get('description')?.touched) {
+        <div [style.color]="'red'" [style.font-size.px]="12">Description is required (min 10 chars).</div>
+        }
+    </div>
+</form>
+
+<div [style.display]="'flex'" [style.justify-content]="'flex-end'" [style.gap.px]="10" [style.margin-top.px]="20">
+    <button kendoButton (click)="onCancel()">Cancel</button>
+    <button kendoButton themeColor="primary" (click)="onSave()">{{ processDefinition ? 'Update' : 'Create' }}</button>
+</div>
