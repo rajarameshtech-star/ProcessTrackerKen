@@ -1,0 +1,43 @@
+<!-- modules/service-items/service-item-create/service-item-create.component.html -->
+<div [style.margin-bottom.px]="20">
+  <button kendoButton 
+    [disabled]="loading"
+    (click)="onCreateClick()">
+    Create New Service Item
+  </button>
+</div>
+
+<div *ngIf="showCreateForm" [style.border]="'1px solid #ddd'" [style.padding.px]="15" [style.margin-bottom.px]="20" [style.border-radius.px]="4" [style.background-color]="'#fafafa'">
+  <h3>Create New Service Item</h3>
+  
+  <div [style.margin-bottom.px]="15">
+    <label [style.display]="'block'" [style.margin-bottom.px]="5">Application</label>
+    <kendo-dropdownlist
+      [data]="applications"
+      [(ngModel)]="selectedAppId"
+      textField="title"
+      valueField="id"
+      placeholder="Select Application">
+    </kendo-dropdownlist>
+  </div>
+
+  <div [style.margin-bottom.px]="15">
+    <label [style.display]="'block'" [style.margin-bottom.px]="5">Process Definition</label>
+    <kendo-dropdownlist
+      [data]="processDefinitions"
+      [(ngModel)]="selectedProcDefId"
+      textField="name"
+      valueField="id"
+      placeholder="Select Process Definition">
+    </kendo-dropdownlist>
+  </div>
+
+  <div *ngIf="selectedAppId && selectedProcDefId">
+    <app-service-item-form 
+      [processDefinitionId]="selectedProcDefId"
+      [isEditMode]="false"
+      (onSubmit)="onFormSubmit($event)"
+      (onCancel)="onFormCancel()">
+    </app-service-item-form>
+  </div>
+</div>

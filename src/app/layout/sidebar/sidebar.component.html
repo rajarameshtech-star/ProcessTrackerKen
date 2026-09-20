@@ -1,0 +1,31 @@
+<!-- layout/sidebar/sidebar.component.html -->
+<aside class="sidebar">
+  <nav class="sidebar-nav">
+    <ul class="nav-list">
+      <li class="nav-item">
+        <a routerLink="/applications" 
+           routerLinkActive="active" 
+           [routerLinkActiveOptions]="{ exact: true }"
+           class="nav-link">
+          Applications
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/service-items" 
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: true }"
+           class="nav-link">
+          Service Items
+        </a>
+      </li>
+      <li class="nav-item">
+        <a routerLink="/process-types" 
+           routerLinkActive="active"
+           [routerLinkActiveOptions]="{ exact: true }"
+           class="nav-link">
+          Process Types
+        </a>
+      </li>
+    </ul>
+  </nav>
+</aside>

@@ -1,0 +1,58 @@
+<!-- modules/service-items/service-item-table/service-item-table.html -->
+<div *ngIf="!viewEditMode && selectedProcessDefinitionId">
+  <kendo-grid
+    [data]="records"
+    [pageSize]="pageSize"
+    [skip]="(pageNumber - 1) * pageSize"
+    
+    (pageChange)="onPageChange($event)"
+    [loading]="loading"
+    [pageable]="true"
+    [sortable]="true">
+    
+    <kendo-grid-column field="recordNumber" title="Record Number" [width]="150"></kendo-grid-column>
+    <kendo-grid-column field="recordStatus" title="Status" [width]="100"></kendo-grid-column>
+    
+    <kendo-grid-column 
+  *ngFor="let field of getDisplayColumns()"
+  [title]="field" 
+  [width]="150">
+  <ng-template kendoGridCellTemplate let-dataItem>
+    {{ dataItem.fieldValues[field] }}
+  </ng-template>
+</kendo-grid-column>
+    
+    <kendo-grid-column field="createdDate" title="Created Date" [width]="150"></kendo-grid-column>
+    
+    <kendo-grid-column title="Actions" [width]="200">
+      <ng-template kendoGridCellTemplate let-dataItem>
+        <button kendoButton 
+          [disabled]="loading"
+          (click)="onView(dataItem.id)"
+          [style.margin-right.px]="5">
+          View
+        </button>
+        <button kendoButton 
+          [disabled]="loading"
+          (click)="onEdit(dataItem.id)"
+          [style.margin-right.px]="5">
+          Edit
+        </button>
+        <button kendoButton 
+          [disabled]="loading"
+          (click)="onDelete(dataItem.id)">
+          Delete
+        </button>
+      </ng-template>
+    </kendo-grid-column>
+  </kendo-grid>
+</div>
+
+<div *ngIf="viewEditMode && selectedRecordId">
+  <app-service-item-form 
+    [processDefinitionId]="selectedProcessDefinitionId"
+    [recordId]="selectedRecordId"
+    [isEditMode]="viewEditMode === 'edit'"
+    (onCancel)="onFormClose()">
+  </app-service-item-form>
+</div>
