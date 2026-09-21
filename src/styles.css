@@ -1,1 +1,276 @@
 /* You can add global styles to this file, and also import other style files */
+@import '@progress/kendo-theme-material/dist/all.css';
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #334155;
+    background-color: #f8fafc;
+    margin: 0;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Inter', sans-serif;
+    color: #1e293b;
+    font-weight: 600;
+}
+
+/* Layout Utilities */
+.flex-row {
+    display: flex;
+    align-items: center;
+}
+
+.flex-col {
+    display: flex;
+    flex-direction: column;
+}
+
+.justify-between {
+    justify-content: space-between;
+}
+
+.justify-end {
+    justify-content: flex-end;
+}
+
+/* Spacing & Gaps */
+.gap-sm {
+    gap: 5px;
+}
+
+.gap-md {
+    gap: 10px;
+}
+
+.gap-lg {
+    gap: 15px;
+}
+
+.p-sm {
+    padding: 8px;
+}
+
+.p-md {
+    padding: 15px;
+}
+
+.p-lg {
+    padding: 30px;
+}
+
+.p-xl {
+    padding: 50px;
+}
+
+.mt-md {
+    margin-top: 15px;
+}
+
+.mt-lg {
+    margin-top: 20px;
+}
+
+.mb-sm {
+    margin-bottom: 5px;
+}
+
+.mb-md {
+    margin-bottom: 15px;
+}
+
+.mr-sm {
+    margin-right: 5px;
+}
+
+/* Styling Utilities */
+.border-light {
+    border: 1px solid #e2e8f0;
+}
+
+.border-input {
+    border: 1px solid #cbd5e1;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.border-input:focus {
+    border-color: #38bdf8;
+    box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    outline: none;
+}
+
+.bg-light {
+    background-color: #ffffff;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.025);
+}
+
+.rounded {
+    border-radius: 8px;
+}
+
+.k-button {
+    border-radius: 6px !important;
+    font-weight: 500 !important;
+    transition: transform 0.1s ease, box-shadow 0.1s ease !important;
+}
+
+.k-button:active {
+    transform: scale(0.97);
+}
+
+.k-grid {
+    border-radius: 8px;
+    border: 1px solid #e2e8f0 !important;
+    overflow: hidden;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05) !important;
+}
+
+.k-grid-header {
+    background-color: #f1f5f9 !important;
+}
+
+.k-grid-header .k-header {
+    font-weight: 600 !important;
+    color: #475569 !important;
+}
+
+/* Expansion Panel Header */
+.k-expander-header {
+    background-color: #f8fafc !important;
+}
+
+.k-expander-title {
+    font-weight: 600 !important;
+    color: #475569 !important;
+}
+
+.w-full {
+    width: 100%;
+}
+
+/* Typography */
+.font-medium {
+    font-weight: 500;
+}
+
+.font-semibold {
+    font-weight: 600;
+}
+
+.block {
+    display: block;
+}
+
+.text-success {
+    color: green;
+}
+
+.text-danger {
+    color: red;
+}
+
+.text-muted {
+    color: gray;
+    font-size: 13px;
+}
+
+/* Legible Form Overrides for View Mode */
+.k-disabled,
+[disabled],
+.k-state-disabled {
+    opacity: 1 !important;
+    color: #1e293b !important;
+    background-color: #f8fafc !important;
+    font-family: inherit !important;
+    -webkit-text-fill-color: #1e293b !important;
+}
+
+/* Dynamic Status Badges */
+.badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.badge-critical {
+    background-color: #ffdce0;
+    color: #a30014;
+    border: 1px solid #ffa3af;
+}
+
+.badge-high {
+    background-color: #fff0d6;
+    color: #9c5c00;
+    border: 1px solid #ffcc80;
+}
+
+.badge-medium {
+    background-color: #e0f2fe;
+    color: #005f9e;
+    border: 1px solid #7dd3fc;
+}
+
+.badge-success {
+    background-color: #d1fae5;
+    color: #047857;
+    border: 1px solid #6ee7b7;
+}
+
+.badge-amber {
+    background-color: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fcd34d;
+}
+
+.badge-danger {
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+}
+
+.badge-default {
+    background-color: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+}
+
+/* Subtle Premium Buttons */
+.btn-muted {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0 !important;
+    background-image: none !important;
+}
+
+.btn-muted:hover {
+    background-color: #e2e8f0 !important;
+}
+
+.btn-primary-muted {
+    background-color: #e0f2fe !important;
+    color: #0369a1 !important;
+    border: 1px solid #bae6fd !important;
+    background-image: none !important;
+}
+
+.btn-primary-muted:hover {
+    background-color: #bae6fd !important;
+}
+
+.btn-danger-muted {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fecaca !important;
+    background-image: none !important;
+}
+
+.btn-danger-muted:hover {
+    background-color: #fecaca !important;
+}

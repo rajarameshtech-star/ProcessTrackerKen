@@ -49,8 +49,8 @@ export class ProcessDefinitionSelectComponent implements OnInit, OnChanges {
   }
 
 
-  onProcessDefinitionChange(event: any): void {
-    this.selectedProcessDefinitionId = event.id;
+  onProcessDefinitionChange(id: number): void {
+    this.selectedProcessDefinitionId = id;
   }
 
   onShow(): void {

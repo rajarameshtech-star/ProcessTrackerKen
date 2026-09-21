@@ -2,6 +2,7 @@ import { Component, OnInit, Input, Output, EventEmitter, OnChanges, SimpleChange
 import { CommonModule } from '@angular/common';
 import { GridModule } from '@progress/kendo-angular-grid';
 import { ButtonsModule } from '@progress/kendo-angular-buttons';
+import { DialogModule } from '@progress/kendo-angular-dialog';
 import { ProcessRecordService } from '../../../core/services/process-record.service';
 import { ProcessDefinitionService } from '../../../core/services/process-definition.service';
 import { ProcessRecord } from '../../../core/models/process-record.model';
@@ -10,11 +11,12 @@ import { ServiceItemFormComponent } from '../service-item-form/service-item-form
 import { FilterPanelComponent } from '../filter-panel/filter-panel.component';
 import { ToastService } from '../../../shared/utils/toast.service';
 import { forkJoin } from 'rxjs';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-service-item-table',
   standalone: true,
-  imports: [CommonModule, GridModule, ButtonsModule, ServiceItemFormComponent, FilterPanelComponent],
+  imports: [CommonModule, GridModule, ButtonsModule, DialogModule, ServiceItemFormComponent, FilterPanelComponent],
   templateUrl: './service-item-table.component.html'
 })
 export class ServiceItemTableComponent implements OnInit, OnChanges {
@@ -30,13 +32,19 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
   pageNumber = 1;
   totalCount = 0;
   selectedRecordId: number | null = null;
+
+  // Custom Confirmation Dialog State
+  isDeleteDialogOpen = false;
+  recordToDelete: number | null = null;
+
   viewEditMode: 'view' | 'edit' | null = null;
-  activeFilters: any = {};
+  activeFilters: any = { filters: {} };
 
   constructor(
     private processRecordService: ProcessRecordService,
     private processDefinitionService: ProcessDefinitionService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private router: Router
   ) { }
 
   ngOnInit(): void { }
@@ -47,7 +55,7 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
       this.totalCount = 0;
       this.processFields = [];
       this.displayColumns = [];
-      this.activeFilters = {};
+      this.activeFilters = { filters: {} };
       this.pageNumber = 1;
       this.loadData();
     } else if (changes['applicationId'] && !changes['selectedProcessDefinitionId']) {
@@ -108,9 +116,11 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
   }
 
   onView(recordId: number): void {
-    this.selectedRecordId = recordId;
-    this.viewEditMode = 'view';
-    this.formActive.emit(true);
+    const queryParams: any = {};
+    if (this.applicationId) queryParams.applicationId = this.applicationId;
+    if (this.selectedProcessDefinitionId) queryParams.processDefinitionId = this.selectedProcessDefinitionId;
+
+    this.router.navigate([`/service-items/${recordId}/view`], { queryParams });
   }
 
   onEdit(recordId: number): void {
@@ -121,19 +131,32 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
 
   onDelete(recordId: number): void {
     if (!this.selectedProcessDefinitionId) return;
+    this.recordToDelete = recordId;
+    this.isDeleteDialogOpen = true;
+  }
 
-    if (confirm('Are you sure you want to delete this record?')) {
-      this.processRecordService.deleteRecord(this.selectedProcessDefinitionId, recordId).subscribe({
-        next: () => {
-          this.toastService.showSuccess('Record deleted successfully');
-          this.loadRecords();
-        },
-        error: (err: any) => {
-          console.error('Error deleting record:', err);
-          this.toastService.showError(err.error?.message || 'Failed to delete record');
-        }
-      });
-    }
+  confirmDelete(): void {
+    if (!this.selectedProcessDefinitionId || !this.recordToDelete) return;
+
+    this.processRecordService.deleteRecord(this.selectedProcessDefinitionId, this.recordToDelete).subscribe({
+      next: () => {
+        this.toastService.showSuccess('Record deleted successfully');
+        this.isDeleteDialogOpen = false;
+        this.recordToDelete = null;
+        this.loadRecords();
+      },
+      error: (err: any) => {
+        console.error('Error deleting record:', err);
+        this.toastService.showError(err.error?.message || 'Failed to delete record');
+        this.isDeleteDialogOpen = false;
+        this.recordToDelete = null;
+      }
+    });
+  }
+
+  cancelDelete(): void {
+    this.isDeleteDialogOpen = false;
+    this.recordToDelete = null;
   }
 
   onFormClose(): void {
@@ -141,6 +164,27 @@ export class ServiceItemTableComponent implements OnInit, OnChanges {
     this.selectedRecordId = null;
     this.formActive.emit(false);
     this.loadRecords();
+  }
+
+  getTruncatedText(text: any, fieldName: string, fieldType: number): { display: string, full: string } {
+    if (text === null || text === undefined || text === '') return { display: '', full: '' };
+
+    // Ensure nested objects gracefully coerce to string templates
+    const raw = String(text);
+
+    // Description or heavy TextArea maps explicitly clamp at tightly controlled 20 characters
+    if (fieldName.toLowerCase() === 'description' || fieldType === 5) {
+      return {
+        display: raw.length > 20 ? raw.substring(0, 20) + '...' : raw,
+        full: raw
+      };
+    }
+
+    // Fall back to structurally clamping normal text inputs near 40 characters
+    return {
+      display: raw.length > 40 ? raw.substring(0, 40) + '...' : raw,
+      full: raw
+    };
   }
 
   onPageChange(event: any): void {

@@ -1,0 +1,69 @@
+# Process Tracker Kendo UI Frontend - Rebuild Instructions (Claude Haiku / Non-Agent LLM)
+This document contains 12 highly explicit prompts to feed a chat-based LLM. These prompts contain the exact domain language, API structures, and Kendo UI requirements needed to rebuild this specific Process Tracker frontend from scratch.
+
+### Setup Context Header (Send this first as a preamble)
+"I am building an Angular 19 frontend using native Kendo UI components (`@progress/kendo-angular-grid`, `buttons`, `inputs`, `dropdowns`, `dialog`, etc.). 
+The domain is a 'Process Tracker'. It consists of 4 core entities:
+1. Applications (Systems/Departments that own data).
+2. Process Definitions / Process Types (Templates for tickets, e.g., 'Incident', 'Change Request').
+3. Process Fields (Dynamic form schemas defining the exact questions asked in a Process Type, e.g., 'Summary', 'Priority', 'Impact'. Stored as an enum fieldType 0-9 representing Text, Number, Date, Dropdown, etc. Dropdowns parse JSON from `optionsJson`).
+4. Process Records / Service Items (The actual submitted tickets/forms. Their data is stored flexibly in a JSON dictionary `fieldValues: { [key: string]: string }` mapping to the Process Fields).
+Please acknowledge this domain structure before we start generating the code."
+
+---
+
+**Prompt 1: API Constants & Interfaces**
+"Create `api.constants.ts` with a `const API_ENDPOINTS` object containing standard REST paths for `applications`, `processDefinitions`, `processFields` (e.g., `/process-fields/process/{processDefinitionId}`), and `processRecords` (e.g., `/processes/{processId}/records` and a POST `/processes/{processId}/records/search`).
+Then, create corresponding TypeScript interfaces for `Application`, `ProcessDefinition`, `ProcessField` (include properties like `fieldName`, `label`, `fieldType` enum, `isRequired`, `optionsJson`, `isActive`), and `ProcessRecord` (include `id`, `applicationId`, `processDefinitionId`, `recordStatus`, `notes`, and `fieldValues: { [key: string]: string }`)."
+
+**Prompt 2: API Services via HttpClient**
+"Generate four Angular `@Injectable` services: `ApplicationService`, `ProcessDefinitionService`, `ProcessFieldService`, and `ProcessRecordService`. 
+For `ProcessRecordService`, explicitly implement a `searchRecords(processId, applicationId, filters, pageNumber, pageSize)` method that hits the POST search endpoint and properly passes `applicationId` as an optional query parameter while placing the filters and pagination inside the request body payload."
+
+**Prompt 3: Application Module (Simple CRUD Grid)**
+"Create an `ApplicationsComponent` containing an `ApplicationListComponent`. Use a `<kendo-grid>` to list all `Application` records fetching from `ApplicationService.getAll()`. Include columns for 'Name', 'Description', and 'Active Status'. Add an 'Actions' column containing an 'Edit' button, a 'View Service Items' button (which triggers router navigation to `/service-items?applicationId={id}`), and an 'Activate/Deactivate' button calling a `/toggle-status` PATCH endpoint."
+
+**Prompt 4: Application Dialog (Reactive Forms)**
+"Build an `ApplicationDialogComponent` utilizing `<kendo-dialog>` and a Reactive `FormGroup` with `name` and `description` controls. Integrate it into `ApplicationListComponent` using an `@if (isDialogOpen)` wrapper. Ensure that when you click 'Edit', the form patches the selected Application's data, and clicking 'Save' emits the payload back to the list component to execute the POST/PUT request securely."
+
+**Prompt 5: Process Types (Definitions) Module**
+"Similarly to Applications, create a `ProcessTypesComponent` and `ProcessDefinitionListComponent`. Build a `<kendo-grid>` displaying `code`, `name`, `description`, and `isActive`. In the Actions column, add 'Edit', 'Activate/Deactivate' and heavily emphasize a new 'Manage Fields' button. The 'Manage Fields' button must execute `router.navigate(['/process-fields'], { queryParams: { processDefinitionId: dataItem.id } })`."
+
+**Prompt 6: Process Fields List (Grid)**
+"Generate a `ProcessFieldsComponent` acting as the page orchestrator that reads `processDefinitionId` from the route query string. Below it, render `ProcessFieldListComponent`. The grid should display `sortOrder`, `fieldName`, `label`, a mapped string for `fieldType`, and `isRequired`. Add 'Edit' and 'Delete' action buttons. Fetch the fields via `ProcessFieldService.getFieldsByProcessDefinition(id)`."
+
+**Prompt 7: Process Fields Dialog (Complex Config)**
+"Create `ProcessFieldDialogComponent` using `<kendo-dialog>` and Reactive Forms. 
+Inputs must include: `fieldName` (strict regex `^[a-zA-Z0-9_]+$`, disabled if editing), `fieldType` (a `<kendo-dropdownlist>` mapping 0-9 to Text, Number, Date, Checkbox, Dropdown, etc.), `label`, and `isRequired` (Checkbox). 
+Add an 'Advanced Config' section at the bottom containing `min`, `max`, and a `textarea` for `optionsJson`. ONLY show the `optionsJson` textarea conditionally if the selected `fieldType === 4` (Dropdown)."
+
+**Prompt 8: Service Items Root Navigation (The Hub)**
+"Create `ServiceItemsComponent` connected to the `/service-items` route. This is where users view actual 'Tickets/Records'. 
+In the component, subscribe to `route.queryParams` to extract `applicationId` and `processDefinitionId`. 
+Render a top control bar containing two `<kendo-dropdownlist>` elements horizontally aligned:
+1. Application mapping to `applications`.
+2. Process Type mapping to `processDefinitions`.
+When the user switches these dropdowns, seamlessly update the Angular route query parameters to persist the selection."
+
+**Prompt 9: Service Item Dynamic Grid (Metaprogramming)**
+"Inside `ServiceItemsComponent`, render `<app-service-item-table>` passing `[applicationId]` and `[selectedProcessDefinitionId]`. 
+Inside `ServiceItemTableComponent`, implement an `ngOnChanges` that triggers a `loadData()` function when the Process Type changes. 
+Use `forkJoin` to simultaneously fetch the Schema (`ProcessDefinitionService.getProcessDefinitionStructure()`) and the Data (`ProcessRecordService.searchRecords()`). 
+Dynamically generate the table columns. Iterate through the fetched Schema `ProcessField[]` and bind `<kendo-grid-column>` tags where the cell template explicitly evaluates `{{ dataItem.fieldValues[field.fieldName] }}`."
+
+**Prompt 10: Service Item Table Reload Logic (Issue Fix)**
+"Update `ServiceItemTableComponent`'s `ngOnChanges` to properly track Application changes independently. If `changes['applicationId']` is triggered but the Process Type remains identical, you MUST immediately reset `pageNumber = 1` and execute `.loadRecords()` (without refetching the schema fields) to flawlessly filter the existing grid natively to the newly selected application."
+
+**Prompt 11: Dynamic Reactive Form Renderer (ServiceItemFormComponent)**
+"Build `ServiceItemFormComponent`. It receives `processDefinitionId`, `recordId`, and `mode` (create/view/edit).
+Fetch the `ProcessField[]` schema and dynamically construct a `FormGroup`. Loop over the schema in the HTML using `@for`. 
+If `fieldType === 0`, render `<kendo-textbox>`.
+If `fieldType === 4`, parse `field.optionsJson` and render a `<kendo-dropdownlist>`.
+If `fieldType === 6`, render a checkbox.
+If `recordId` is provided, fetch the existing `ProcessRecord`, cast all the `fieldValues[key]` strings back into their respective Typescript types natively (e.g., Dates, Numbers, Booleans), and `form.patchValue()` them into the dynamic form. If `mode === 'view'`, natively `form.disable()` the entire group."
+
+**Prompt 12: Record Submission / Mark as Completed (Business Logic)**
+"Modify `ServiceItemFormComponent`. 
+In the bottom action bar, if `mode !== 'create'` and the fetched `loadedRecord.recordStatus !== 'Submitted'`, display a large green 'Mark as Completed' button. 
+If the user clicks it, open a small `<kendo-dialog>` asking for optional 'Closing Notes'. Upon confirm, hit the POST API endpoint `/api/processes/{processId}/records/{recordId}/submit` sending the notes. On success locally transform `loadedRecord.recordStatus = 'Submitted'`.
+If the record is already 'Submitted', hide the 'Mark as Completed' button and hide the 'Edit' button in the Grid Actions column permanently to lock the record strictly to 'View' mode."

@@ -1,7 +1,8 @@
 <!-- modules/service-items/process-definition-select/process-definition-select.component.html -->
 <div [style.display]="'flex'" [style.gap.px]="10" [style.align-items]="'center'">
-  <kendo-dropdownlist [data]="processDefinitions" (selectionChange)="onProcessDefinitionChange($event)" textField="name"
-    valueField="id" placeholder="Select Process Definition">
+  <kendo-dropdownlist [data]="processDefinitions" [ngModel]="selectedProcessDefinitionId" [valuePrimitive]="true"
+    (ngModelChange)="onProcessDefinitionChange($event)" textField="name" valueField="id"
+    placeholder="Select Process Definition" style="width: 250px;">
   </kendo-dropdownlist>
   <button kendoButton [disabled]="!selectedProcessDefinitionId || loading" (click)="onShow()">
     Show

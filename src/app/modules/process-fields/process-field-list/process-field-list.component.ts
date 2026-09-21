@@ -9,10 +9,10 @@ import { ToastService } from '../../../shared/utils/toast.service';
 import { ProcessFieldDialogComponent } from '../process-field-dialog/process-field-dialog.component';
 
 @Component({
-    selector: 'app-process-field-list',
-    standalone: true,
-    imports: [CommonModule, GridModule, ButtonsModule, DialogModule, ProcessFieldDialogComponent],
-    template: `
+  selector: 'app-process-field-list',
+  standalone: true,
+  imports: [CommonModule, GridModule, ButtonsModule, DialogModule, ProcessFieldDialogComponent],
+  template: `
     <kendo-grid [data]="fields" [loading]="loading">
       
       <kendo-grid-column field="sortOrder" title="Order" [width]="80"></kendo-grid-column>
@@ -27,18 +27,24 @@ import { ProcessFieldDialogComponent } from '../process-field-dialog/process-fie
       
       <kendo-grid-column field="isRequired" title="Required" [width]="100">
         <ng-template kendoGridCellTemplate let-dataItem>
-          {{ dataItem.isRequired ? 'Yes' : 'No' }}
+          @if(dataItem.isRequired) {
+            <span class="badge badge-amber">Required</span>
+          } @else {
+            <span class="badge badge-default">Optional</span>
+          }
         </ng-template>
       </kendo-grid-column>
 
-      <kendo-grid-column title="Actions" [width]="280">
+      <kendo-grid-column title="Actions" [width]="200">
         <ng-template kendoGridCellTemplate let-dataItem>
-          <button kendoButton themeColor="primary" (click)="openDialog(dataItem)" [style.margin-right.px]="5">
-            Edit
-          </button>
-          <button kendoButton themeColor="error" look="outline" (click)="deleteField(dataItem)">
-            Delete
-          </button>
+          <div class="flex-row gap-sm" style="flex-wrap: nowrap;">
+            <button kendoButton class="btn-primary-muted" (click)="openDialog(dataItem)">
+              Edit
+            </button>
+            <button kendoButton class="btn-danger-muted" (click)="deleteField(dataItem)">
+              Delete
+            </button>
+          </div>
         </ng-template>
       </kendo-grid-column>
     </kendo-grid>
@@ -56,86 +62,86 @@ import { ProcessFieldDialogComponent } from '../process-field-dialog/process-fie
   `
 })
 export class ProcessFieldListComponent implements OnInit {
-    @Input() processDefinitionId!: number;
+  @Input() processDefinitionId!: number;
 
-    fields: ProcessField[] = [];
-    loading = false;
+  fields: ProcessField[] = [];
+  loading = false;
 
-    isDialogOpen = false;
-    selectedField: ProcessField | null = null;
-    dialogMode: 'create' | 'edit' = 'create';
+  isDialogOpen = false;
+  selectedField: ProcessField | null = null;
+  dialogMode: 'create' | 'edit' = 'create';
 
-    constructor(
-        private processFieldService: ProcessFieldService,
-        private toastService: ToastService
-    ) { }
+  constructor(
+    private processFieldService: ProcessFieldService,
+    private toastService: ToastService
+  ) { }
 
-    ngOnInit(): void {
-        this.loadFields();
+  ngOnInit(): void {
+    this.loadFields();
+  }
+
+  loadFields(): void {
+    if (!this.processDefinitionId) return;
+    this.loading = true;
+    this.processFieldService.getFieldsByProcessDefinition(this.processDefinitionId).subscribe({
+      next: (data) => {
+        this.fields = data;
+        this.loading = false;
+      },
+      error: () => {
+        this.toastService.showError('Failed to load fields');
+        this.loading = false;
+      }
+    });
+  }
+
+  getFieldTypeName(type: number): string {
+    const types = ['Text', 'Number', 'Date', 'DateTime', 'Dropdown', 'TextArea', 'Checkbox', 'Email', 'Url', 'Phone'];
+    return types[type] || 'Unknown';
+  }
+
+  openDialog(field: ProcessField | null = null): void {
+    this.selectedField = field;
+    this.dialogMode = field ? 'edit' : 'create';
+    this.isDialogOpen = true;
+  }
+
+  closeDialog(): void {
+    this.isDialogOpen = false;
+    this.selectedField = null;
+  }
+
+  saveField(data: any): void {
+    if (this.dialogMode === 'create') {
+      this.processFieldService.createField(data).subscribe({
+        next: () => {
+          this.toastService.showSuccess('Field created successfully');
+          this.closeDialog();
+          this.loadFields();
+        },
+        error: (err) => this.toastService.showError(err.error?.title || 'Error creating field')
+      });
+    } else if (this.selectedField) {
+      this.processFieldService.updateField(this.selectedField.id, data).subscribe({
+        next: () => {
+          this.toastService.showSuccess('Field updated successfully');
+          this.closeDialog();
+          this.loadFields();
+        },
+        error: (err) => this.toastService.showError(err.error?.title || 'Error updating field')
+      });
     }
+  }
 
-    loadFields(): void {
-        if (!this.processDefinitionId) return;
-        this.loading = true;
-        this.processFieldService.getFieldsByProcessDefinition(this.processDefinitionId).subscribe({
-            next: (data) => {
-                this.fields = data;
-                this.loading = false;
-            },
-            error: () => {
-                this.toastService.showError('Failed to load fields');
-                this.loading = false;
-            }
-        });
+  deleteField(field: ProcessField): void {
+    if (confirm('Are you sure you want to completely delete this field? This will fail if records are using it!')) {
+      this.processFieldService.deleteField(field.id).subscribe({
+        next: () => {
+          this.toastService.showSuccess('Field deleted');
+          this.loadFields();
+        },
+        error: (err) => this.toastService.showError(err.error?.title || 'Error deleting field (in use?)')
+      });
     }
-
-    getFieldTypeName(type: number): string {
-        const types = ['Text', 'Number', 'Date', 'DateTime', 'Dropdown', 'TextArea', 'Checkbox', 'Email', 'Url', 'Phone'];
-        return types[type] || 'Unknown';
-    }
-
-    openDialog(field: ProcessField | null = null): void {
-        this.selectedField = field;
-        this.dialogMode = field ? 'edit' : 'create';
-        this.isDialogOpen = true;
-    }
-
-    closeDialog(): void {
-        this.isDialogOpen = false;
-        this.selectedField = null;
-    }
-
-    saveField(data: any): void {
-        if (this.dialogMode === 'create') {
-            this.processFieldService.createField(data).subscribe({
-                next: () => {
-                    this.toastService.showSuccess('Field created successfully');
-                    this.closeDialog();
-                    this.loadFields();
-                },
-                error: (err) => this.toastService.showError(err.error?.title || 'Error creating field')
-            });
-        } else if (this.selectedField) {
-            this.processFieldService.updateField(this.selectedField.id, data).subscribe({
-                next: () => {
-                    this.toastService.showSuccess('Field updated successfully');
-                    this.closeDialog();
-                    this.loadFields();
-                },
-                error: (err) => this.toastService.showError(err.error?.title || 'Error updating field')
-            });
-        }
-    }
-
-    deleteField(field: ProcessField): void {
-        if (confirm('Are you sure you want to completely delete this field? This will fail if records are using it!')) {
-            this.processFieldService.deleteField(field.id).subscribe({
-                next: () => {
-                    this.toastService.showSuccess('Field deleted');
-                    this.loadFields();
-                },
-                error: (err) => this.toastService.showError(err.error?.title || 'Error deleting field (in use?)')
-            });
-        }
-    }
+  }
 }

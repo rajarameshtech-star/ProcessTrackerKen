@@ -23,6 +23,7 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
   @Input() processDefinitionId: number | null = null;
   @Input() recordId: number | null = null;
   @Input() mode: 'create' | 'edit' | 'view' = 'create';
+  @Input() hideDefaultCancel = false;
   @Output() onSubmit = new EventEmitter<any>();
   @Output() onCancel = new EventEmitter<void>();
 
@@ -35,6 +36,11 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
   loadedRecord: ProcessRecord | null = null;
   isSubmitDialogOpen = false;
   submitNotes = '';
+
+  priorities: string[] = [];
+  defaultPriorityItem: string = 'Select Priority';
+
+  serverErrors: { [key: string]: string } = {};
 
   // Field type constants
   readonly FieldTypeText = 0;
@@ -54,16 +60,30 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
     private processRecordService: ProcessRecordService,
     private toastService: ToastService
   ) {
-    this.form = this.fb.group({});
+    this.form = this.fb.group({
+      priority: [null],
+      expectedDueDate: [null],
+      assignedTo: ['']
+    });
   }
 
   ngOnInit(): void { }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['processDefinitionId'] && this.processDefinitionId) {
-      this.form = this.fb.group({});
+      this.form = this.fb.group({
+        priority: [null],
+        expectedDueDate: [null],
+        assignedTo: ['']
+      });
       this.parsedOptions = {};
       this.processFields = [];
+
+      this.processRecordService.getPriorities(this.processDefinitionId).subscribe({
+        next: (res) => this.priorities = res,
+        error: (err) => console.error('Failed to load priorities', err)
+      });
+
       this.loadProcessFields();
     } else if (changes['recordId'] && this.recordId && this.mode !== 'create' && this.processFields.length > 0) {
       this.loadRecord();
@@ -73,8 +93,11 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
   loadProcessFields(): void {
     this.processDefinitionService.getProcessDefinitionStructure(this.processDefinitionId!).subscribe({
       next: (response) => {
-        this.processFields = response.fields.sort((a: ProcessField, b: ProcessField) => a.sortOrder - b.sortOrder);
-        console.log('Loaded fields:', this.processFields);
+        // Render all dynamically mapped process fields independently regardless of system properties!
+        this.processFields = response.fields
+          .sort((a: ProcessField, b: ProcessField) => a.sortOrder - b.sortOrder);
+
+        console.log('Loaded filtered fields:', this.processFields);
         this.buildForm();
         if (this.mode !== 'create' && this.recordId) {
           this.loadRecord();
@@ -102,6 +125,11 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
         }
       }
     });
+
+    group['priority'] = [null, [Validators.required]];
+    group['expectedDueDate'] = [null];
+    group['assignedTo'] = [''];
+
     this.form = this.fb.group(group);
   }
 
@@ -123,7 +151,7 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
           }
 
           if (field.fieldType === this.FieldTypeDate || field.fieldType === this.FieldTypeDateTime) {
-            patchedValues[field.fieldName] = new Date(rawValue);
+            patchedValues[field.fieldName] = (rawValue && !isNaN(Date.parse(rawValue))) ? new Date(rawValue) : null;
           } else if (field.fieldType === this.FieldTypeNumber) {
             patchedValues[field.fieldName] = Number(rawValue);
           } else if (field.fieldType === this.FieldTypeCheckbox) {
@@ -132,6 +160,11 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
             patchedValues[field.fieldName] = rawValue;
           }
         }
+
+        // Apply exactly isolated System Properties!
+        patchedValues['priority'] = record.priority;
+        patchedValues['expectedDueDate'] = record.expectedDueDate ? new Date(record.expectedDueDate) : null;
+        patchedValues['assignedTo'] = record.assignedTo || '';
 
         this.form.patchValue(patchedValues);
 
@@ -144,6 +177,33 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
         this.toastService.showError('Failed to load record');
       }
     });
+  }
+
+  getServerError(fieldName: string): string | null {
+    if (!this.serverErrors || !fieldName) return null;
+    const lowerKey = fieldName.toLowerCase();
+    for (const key in this.serverErrors) {
+      if (key.toLowerCase() === lowerKey) {
+        return this.serverErrors[key];
+      }
+    }
+    return null;
+  }
+
+  public setServerErrors(errors: any) {
+    this.serverErrors = {};
+    for (const key in errors) {
+      const apiError = errors[key];
+      this.serverErrors[key] = Array.isArray(apiError) ? apiError[0] : apiError;
+
+      const lowerKey = key.toLowerCase();
+      let matchedControlKey = Object.keys(this.form.controls).find(k => k.toLowerCase() === lowerKey);
+
+      if (matchedControlKey) {
+        this.form.controls[matchedControlKey].setErrors({ serverError: true });
+        this.form.controls[matchedControlKey].markAsTouched();
+      }
+    }
   }
 
   onMarkCompletedClick(): void {
@@ -175,40 +235,71 @@ export class ServiceItemFormComponent implements OnInit, OnChanges {
   }
 
   onSubmitClick(): void {
+    this.serverErrors = {}; // Clear errors securely prior to payload hook logic
     if (this.form.invalid) {
-      this.toastService.showError('Please fill all required fields');
+      const invalidFields: string[] = [];
+      Object.keys(this.form.controls).forEach(key => {
+        const controlErrors = this.form.get(key)?.errors;
+        if (controlErrors) {
+          invalidFields.push(key);
+          console.warn(`Form Field Invalid -> ${key}: `, controlErrors);
+        }
+      });
+      console.warn('Current form values:', this.form.value);
+
+      this.form.markAllAsTouched();
+      this.toastService.showError(`Missing required fields: ${invalidFields.join(', ')}`);
       return;
     }
 
-    // Convert everything to string
-    const stringifiedPayload: any = {};
+    const fieldValues: any = {};
+    const rootPayload: any = {};
+
     for (const key in this.form.value) {
       const val = this.form.value[key];
+
+      if (key === 'priority' || key === 'expectedDueDate' || key === 'assignedTo') {
+        const strVal = (val instanceof Date) ? val.toISOString() : (val === null || val === undefined ? '' : String(val));
+        rootPayload[key] = strVal;
+        continue;
+      }
+
       if (val instanceof Date) {
-        stringifiedPayload[key] = val.toISOString();
+        fieldValues[key] = val.toISOString();
       } else if (val === null || val === undefined) {
-        stringifiedPayload[key] = '';
+        fieldValues[key] = '';
       } else {
-        stringifiedPayload[key] = String(val);
+        fieldValues[key] = String(val);
       }
     }
 
+    if (this.form.value['priority'] === 'Select Priority') {
+      rootPayload['priority'] = null;
+    }
+
+    const finalPayload = { fieldValues, ...rootPayload };
+
     if (this.recordId && this.mode === 'edit' && this.processDefinitionId) {
       this.loading = true;
-      this.processRecordService.updateRecord(this.processDefinitionId, this.recordId, { fieldValues: stringifiedPayload }).subscribe({
+      this.processRecordService.updateRecord(this.processDefinitionId, this.recordId, finalPayload).subscribe({
         next: () => {
           this.toastService.showSuccess('Record updated successfully');
-          this.onSubmit.emit(stringifiedPayload);
+          this.onSubmit.emit(finalPayload);
           this.loading = false;
         },
         error: (err) => {
           console.error('Error updating record:', err);
-          this.toastService.showError(err.error?.title || 'Failed to update record');
+          if (err.status === 400 && err.error && err.error.errors) {
+            this.setServerErrors(err.error.errors);
+            this.toastService.showError('Validation Failed. Please check the highlighted fields.');
+          } else {
+            this.toastService.showError(err.error?.title || 'Failed to update record');
+          }
           this.loading = false;
         }
       });
     } else {
-      this.onSubmit.emit(stringifiedPayload);
+      this.onSubmit.emit(finalPayload);
     }
   }
 

@@ -3,36 +3,45 @@
 
     <kendo-grid-column field="id" title="ID" [width]="50"></kendo-grid-column>
     <kendo-grid-column field="title" title="Title" [width]="150"></kendo-grid-column>
-    <kendo-grid-column field="description" title="Description" [width]="250"></kendo-grid-column>
-
-    <kendo-grid-column field="isActive" title="Active Status" [width]="120">
+    <kendo-grid-column field="description" title="Description" [width]="250">
         <ng-template kendoGridCellTemplate let-dataItem>
-            <span [style.color]="dataItem.isActive ? 'green' : 'red'" [style.font-weight]="'600'">
-                {{ dataItem.isActive ? 'Active' : 'Inactive' }}
+            <span [title]="dataItem.description || ''">
+                {{ dataItem.description?.length > 20 ? (dataItem.description | slice:0:20) + '...' :
+                dataItem.description }}
             </span>
         </ng-template>
     </kendo-grid-column>
 
-    <kendo-grid-column field="processCount" title="Assigned Processes" [width]="150"></kendo-grid-column>
+    <kendo-grid-column field="isActive" title="Active Status" [width]="120">
+        <ng-template kendoGridCellTemplate let-dataItem>
+            @if(dataItem.isActive) {
+            <span class="badge badge-success">Active</span>
+            } @else {
+            <span class="badge badge-danger">Inactive</span>
+            }
+        </ng-template>
+    </kendo-grid-column>
+
     <kendo-grid-column field="createdDate" title="Creation Date" [width]="150">
         <ng-template kendoGridCellTemplate let-dataItem>
             {{ dataItem.createdDate | date:'mediumDate' }}
         </ng-template>
     </kendo-grid-column>
 
-    <kendo-grid-column title="Actions" [width]="350">
+    <kendo-grid-column title="Actions" [width]="380">
         <ng-template kendoGridCellTemplate let-dataItem>
-            <button kendoButton title="Open Associated Service Items" (click)="viewServices(dataItem)"
-                [style.margin-right.px]="5">
-                View Service Items
-            </button>
-            <button kendoButton themeColor="primary" (click)="openDialog(dataItem)" [style.margin-right.px]="5">
-                Edit
-            </button>
-            <button kendoButton [themeColor]="dataItem.isActive ? 'error' : 'secondary'"
-                (click)="toggleActive(dataItem)">
-                {{ dataItem.isActive ? 'Deactivate' : 'Activate' }}
-            </button>
+            <div class="flex-row gap-sm" style="flex-wrap: nowrap;">
+                <button kendoButton class="btn-muted" (click)="viewServices(dataItem)">
+                    View Service Items
+                </button>
+                <button kendoButton class="btn-primary-muted" (click)="openDialog(dataItem)">
+                    Edit
+                </button>
+                <button kendoButton [ngClass]="dataItem.isActive ? 'btn-danger-muted' : 'btn-primary-muted'"
+                    (click)="toggleActive(dataItem)">
+                    {{ dataItem.isActive ? 'Deactivate' : 'Activate' }}
+                </button>
+            </div>
         </ng-template>
     </kendo-grid-column>
 </kendo-grid>

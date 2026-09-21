@@ -8,5 +8,9 @@ export interface ProcessRecord {
   modifiedDate: string;
   submittedDate: string;
   notes: string;
+  applicationName?: string;
+  priority?: string;
+  expectedDueDate?: string;
+  assignedTo?: string;
   fieldValues: { [key: string]: string };
 }

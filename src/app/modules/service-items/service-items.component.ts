@@ -1,6 +1,7 @@
 // modules/service-items/service-items.component.ts
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
 import { ProcessDefinitionSelectComponent } from './process-definition-select/process-definition-select.component';
 import { ServiceItemCreateComponent } from './service-item-create/service-item-create.component';
 import { ServiceItemTableComponent } from './service-item-table/service-item-table.component';
@@ -13,8 +14,16 @@ import { Application } from '../../core/models/application.model';
 @Component({
   selector: 'app-service-items',
   standalone: true,
-  imports: [ProcessDefinitionSelectComponent, ServiceItemTableComponent, ButtonsModule, DropDownsModule, FormsModule],
-  templateUrl: './service-items.component.html'
+  imports: [CommonModule, FormsModule, DropDownsModule, ProcessDefinitionSelectComponent, ServiceItemTableComponent, ButtonsModule],
+  templateUrl: './service-items.component.html',
+  styles: [`
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .header-title { margin: 0; }
+    .filter-row { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; }
+    .flex-1 { flex: 1; }
+    .filter-label { display: block; margin-bottom: 5px; font-weight: 500; }
+    .w-full { width: 100%; }
+  `]
 })
 export class ServiceItemsComponent implements OnInit {
   applicationId: number | null = null;

@@ -6,7 +6,11 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
   selector: 'app-applications',
   standalone: true,
   imports: [ApplicationListComponent, ButtonsModule],
-  templateUrl: './applications.component.html'
+  templateUrl: './applications.component.html',
+  styles: [`
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .header-title { margin: 0; }
+  `]
 })
 export class ApplicationsComponent {
   @ViewChild(ApplicationListComponent) appList!: ApplicationListComponent;

@@ -2,38 +2,95 @@
 <div>
   @if (processFields.length > 0) {
   <div>
-    <app-filter-panel [processFields]="processFields" (onFilter)="onFilterApply($event)"></app-filter-panel>
+    <app-filter-panel [processFields]="processFields" [processDefinitionId]="selectedProcessDefinitionId"
+      (onFilter)="onFilterApply($event)"></app-filter-panel>
   </div>
   }
   <kendo-grid [data]="records" [pageSize]="pageSize" [skip]="(pageNumber - 1) * pageSize"
     (pageChange)="onPageChange($event)" [loading]="loading" [pageable]="true" [sortable]="true">
 
-    <kendo-grid-column field="recordNumber" title="Record Number" [width]="150"></kendo-grid-column>
-    <kendo-grid-column field="recordStatus" title="Status" [width]="100"></kendo-grid-column>
-
-    @for (field of displayColumns; track field) {
-    <kendo-grid-column [title]="field" [width]="150">
+    <kendo-grid-column field="recordNumber" title="Ticket Number" [width]="180">
       <ng-template kendoGridCellTemplate let-dataItem>
-        {{ dataItem.fieldValues[field] }}
+        <div class="font-semibold">{{ dataItem.recordNumber }}</div>
+        <div class="text-muted">{{ dataItem.applicationName || 'Unknown App' }}</div>
+      </ng-template>
+    </kendo-grid-column>
+
+    <kendo-grid-column field="recordStatus" title="Status" [width]="120">
+      <ng-template kendoGridCellTemplate let-dataItem>
+        @if (dataItem.recordStatus === 'Submitted') {
+        <span class="badge badge-success">{{ dataItem.recordStatus }}</span>
+        } @else if (dataItem.recordStatus === 'Draft') {
+        <span class="badge badge-amber">{{ dataItem.recordStatus }}</span>
+        } @else {
+        <span class="badge badge-default">{{ dataItem.recordStatus || 'UNKNOWN' }}</span>
+        }
+      </ng-template>
+    </kendo-grid-column>
+
+    <kendo-grid-column field="priority" title="Priority" [width]="120">
+      <ng-template kendoGridCellTemplate let-dataItem>
+        @if(dataItem.priority === 'CRITICAL' || dataItem.priority === 'Critical') {
+        <span class="badge badge-critical">{{ dataItem.priority }}</span>
+        } @else if(dataItem.priority === 'HIGH' || dataItem.priority === 'High') {
+        <span class="badge badge-high">{{ dataItem.priority }}</span>
+        } @else if(dataItem.priority === 'NORMAL' || dataItem.priority === 'Normal' || dataItem.priority === 'MEDIUM') {
+        <span class="badge badge-medium">{{ dataItem.priority }}</span>
+        } @else {
+        <span class="badge badge-default">{{ dataItem.priority || 'UNSET' }}</span>
+        }
+      </ng-template>
+    </kendo-grid-column>
+
+    <kendo-grid-column field="assignedTo" title="Assigned To" [width]="180">
+      <ng-template kendoGridCellTemplate let-dataItem>
+        @if (dataItem.assignedTo) {
+        <div class="flex-row">
+          <span class="k-icon k-i-user mr-sm"></span> {{ dataItem.assignedTo }}
+        </div>
+        } @else {
+        <span class="text-muted">Unassigned</span>
+        }
+      </ng-template>
+    </kendo-grid-column>
+
+    <kendo-grid-column field="expectedDueDate" title="Target Date" [width]="130">
+      <ng-template kendoGridCellTemplate let-dataItem>
+        @if (dataItem.expectedDueDate) {
+        <span>{{ dataItem.expectedDueDate | date:'MMM d, y' }}</span>
+        } @else {
+        <span class="text-muted">-</span>
+        }
+      </ng-template>
+    </kendo-grid-column>
+
+    @for (field of processFields; track field.fieldName) {
+    <kendo-grid-column [title]="field.fieldName" [width]="field.fieldName.toLowerCase() === 'description' ? 200 : 160">
+      <ng-template kendoGridCellTemplate let-dataItem>
+        <span [title]="getTruncatedText(dataItem.fieldValues[field.fieldName], field.fieldName, field.fieldType).full">
+          {{ getTruncatedText(dataItem.fieldValues[field.fieldName], field.fieldName, field.fieldType).display }}
+        </span>
       </ng-template>
     </kendo-grid-column>
     }
 
     <kendo-grid-column field="createdDate" title="Created Date" [width]="150"></kendo-grid-column>
 
-    <kendo-grid-column title="Actions" [width]="200">
+    <kendo-grid-column title="Actions" [width]="260">
       <ng-template kendoGridCellTemplate let-dataItem>
-        <button kendoButton [disabled]="loading" (click)="onView(dataItem.id)" [style.margin-right.px]="5">
-          View
-        </button>
-        @if (dataItem.recordStatus !== 'Submitted') {
-        <button kendoButton [disabled]="loading" (click)="onEdit(dataItem.id)" [style.margin-right.px]="5">
-          Edit
-        </button>
-        }
-        <button kendoButton [disabled]="loading" (click)="onDelete(dataItem.id)">
-          Delete
-        </button>
+        <div class="flex-row gap-sm" style="flex-wrap: nowrap;">
+          <button kendoButton class="btn-muted" [disabled]="loading" (click)="onView(dataItem.id)">
+            View
+          </button>
+          @if (dataItem.recordStatus !== 'Submitted') {
+          <button kendoButton class="btn-primary-muted" [disabled]="loading" (click)="onEdit(dataItem.id)">
+            Edit
+          </button>
+          }
+          <button kendoButton class="btn-danger-muted" [disabled]="loading" (click)="onDelete(dataItem.id)">
+            Delete
+          </button>
+        </div>
       </ng-template>
     </kendo-grid-column>
   </kendo-grid>
@@ -47,3 +104,14 @@
   </app-service-item-form>
 </div>
 }
+
+<!-- Inline Deletion Confirmation Dialog -->
+<kendo-dialog *ngIf="isDeleteDialogOpen" title="Confirm Deletion" (close)="cancelDelete()" [minWidth]="300"
+  [width]="400">
+  <p class="font-medium" style="margin: 30px 0;">Are you absolutely sure you want to permanently delete this service
+    item?</p>
+  <kendo-dialog-actions>
+    <button kendoButton (click)="cancelDelete()">Cancel</button>
+    <button kendoButton themeColor="error" (click)="confirmDelete()">Delete</button>
+  </kendo-dialog-actions>
+</kendo-dialog>

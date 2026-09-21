@@ -1,0 +1,104 @@
+<!-- modules/home/home.component.html -->
+<div class="mb-md">
+    <h2 class="header-title" style="color: #0f172a; margin-bottom: 20px;">Dashboard Overview</h2>
+</div>
+
+@if (loading) {
+<div class="flex-col gap-sm" style="align-items: center; padding: 40px;">
+    <span class="text-muted font-medium">Loading Dashboard Metrics...</span>
+</div>
+} @else if (metrics) {
+<!-- Metric Cards Rows -->
+<div class="flex-row gap-lg mb-lg" style="flex-wrap: wrap; margin-bottom: 25px;">
+    <!-- Pipeline Metrics -->
+    <div class="flex-col gap-md flex-1">
+        <h4 class="font-semibold text-muted" style="margin: 0; text-transform: uppercase; font-size: 13px;">Service Item
+            Pipeline</h4>
+        <div class="flex-row gap-lg">
+            <div class="flex-1 bg-white border-light rounded shadow-sm p-lg text-center"
+                style="border-top: 3px solid #0ea5e9;">
+                <h2 style="font-size: 32px; margin: 0; color: #0284c7;">{{ metrics.totalRecords }}</h2>
+                <span class="text-muted font-medium">Total Registered</span>
+            </div>
+
+            <div class="flex-1 bg-white border-light rounded shadow-sm p-lg text-center"
+                style="border-top: 3px solid #6ee7b7;">
+                <h2 style="font-size: 32px; margin: 0; color: #059669;">{{ metrics.totalCompletedRecords }}</h2>
+                <span class="text-muted font-medium">Completed</span>
+            </div>
+
+            <div class="flex-1 bg-white border-light rounded shadow-sm p-lg text-center"
+                style="border-top: 3px solid #fcd34d;">
+                <h2 style="font-size: 32px; margin: 0; color: #d97706;">{{ metrics.totalPendingRecords }}</h2>
+                <span class="text-muted font-medium">Pending Processing</span>
+            </div>
+
+            <div class="flex-1 bg-white border-light rounded shadow-sm p-lg text-center"
+                style="border-top: 3px solid #a855f7;">
+                <h2 style="font-size: 32px; margin: 0; color: #7e22ce;">{{ metrics.completionRate | number:'1.1-2' }}%
+                </h2>
+                <span class="text-muted font-medium">Resolution Rate</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="flex-row gap-lg mb-lg" style="flex-wrap: wrap; margin-bottom: 30px;">
+    <!-- Action Items -->
+    <div class="flex-col gap-md flex-1">
+        <h4 class="font-semibold text-muted" style="margin: 0; text-transform: uppercase; font-size: 13px;">Critical
+            Action Items</h4>
+        <div class="flex-row gap-lg">
+            <div class="flex-1 bg-white border-light rounded shadow-sm p-lg text-center"
+                style="border-top: 3px solid #fca5a5;">
+                <h2 style="font-size: 32px; margin: 0; color: #dc2626;">{{ metrics.itemsPastDue }}</h2>
+                <span class="text-muted font-medium">Items Past Due</span>
+            </div>
+
+            <div class="flex-1 bg-white border-light rounded shadow-sm p-lg text-center"
+                style="border-top: 3px solid #fdba74;">
+                <h2 style="font-size: 32px; margin: 0; color: #ea580c;">{{ metrics.itemsDueToday }}</h2>
+                <span class="text-muted font-medium">Due Today</span>
+            </div>
+
+            <div class="flex-1 bg-white border-light rounded shadow-sm p-lg text-center"
+                style="border-top: 3px solid #93c5fd;">
+                <h2 style="font-size: 32px; margin: 0; color: #2563eb;">{{ metrics.itemsDueThisWeek }}</h2>
+                <span class="text-muted font-medium">Due This Week</span>
+            </div>
+
+            <div class="flex-1 bg-white border-light rounded shadow-sm p-lg text-center"
+                style="border-top: 3px solid #cbd5e1;">
+                <h2 style="font-size: 32px; margin: 0; color: #475569;">{{ metrics.unassignedItems }}</h2>
+                <span class="text-muted font-medium">Unassigned</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Process Tracking -->
+<div class="flex-col gap-md">
+    <h4 class="font-semibold text-muted" style="margin: 0; text-transform: uppercase; font-size: 13px;">Process Volume
+        Heatmap</h4>
+    <kendo-grid [data]="metrics.processMetrics" [sortable]="true">
+        <kendo-grid-column field="processCode" title="Schema Code" [width]="120"></kendo-grid-column>
+        <kendo-grid-column field="processName" title="Process Name" [width]="250"></kendo-grid-column>
+        <kendo-grid-column field="completedCount" title="Completed" [width]="100"></kendo-grid-column>
+        <kendo-grid-column field="pendingCount" title="Pending" [width]="100"></kendo-grid-column>
+        <kendo-grid-column title="Top Risk Volumes" [width]="250">
+            <ng-template kendoGridCellTemplate let-dataItem>
+                <div class="flex-row gap-md" style="flex-wrap: wrap;">
+                    @if (dataItem.priorityHeatmap['CRITICAL'] || dataItem.priorityHeatmap['Critical']) {
+                    <span class="badge badge-critical">{{ dataItem.priorityHeatmap['CRITICAL'] ||
+                        dataItem.priorityHeatmap['Critical'] }} Critical</span>
+                    }
+                    @if (dataItem.priorityHeatmap['HIGH'] || dataItem.priorityHeatmap['High']) {
+                    <span class="badge badge-high">{{ dataItem.priorityHeatmap['HIGH'] ||
+                        dataItem.priorityHeatmap['High'] }} High</span>
+                    }
+                </div>
+            </ng-template>
+        </kendo-grid-column>
+    </kendo-grid>
+</div>
+}

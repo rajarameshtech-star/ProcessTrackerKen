@@ -1,26 +1,23 @@
-<form [formGroup]="form" class="k-form k-form-horizontal" [style.display]="'flex'" [style.flex-direction]="'column'"
-    [style.gap.px]="15">
-    <div class="k-form-field" [style.display]="'flex'" [style.flex-direction]="'column'" [style.gap.px]="5">
-        <label class="k-label" [style.font-weight]="'500'">Application Title <span
-                [style.color]="'red'">*</span></label>
+<form [formGroup]="form" class="k-form k-form-horizontal form-wrapper">
+    <div class="k-form-field field-wrapper">
+        <label class="k-label label-weight">Application Title <span class="text-red">*</span></label>
         <kendo-textbox formControlName="title" placeholder="Enter concise application title"></kendo-textbox>
         @if (form.get('title')?.invalid && form.get('title')?.touched) {
-        <div [style.color]="'red'" [style.font-size.px]="12">Title is required (min 3 chars).</div>
+        <div class="error-text">Title is required (min 3 chars).</div>
         }
     </div>
 
-    <div class="k-form-field" [style.display]="'flex'" [style.flex-direction]="'column'" [style.gap.px]="5">
-        <label class="k-label" [style.font-weight]="'500'">Description <span [style.color]="'red'">*</span></label>
+    <div class="k-form-field field-wrapper">
+        <label class="k-label label-weight">Description <span class="text-red">*</span></label>
         <textarea formControlName="description" placeholder="Enter a detailed description..." rows="4"
-            [style.border]="'1px solid #ccc'" [style.padding.px]="8" [style.border-radius.px]="4">
-    </textarea>
+            class="textarea-border"></textarea>
         @if (form.get('description')?.invalid && form.get('description')?.touched) {
-        <div [style.color]="'red'" [style.font-size.px]="12">Description is required (min 10 chars).</div>
+        <div class="error-text">Description is required (min 10 chars).</div>
         }
     </div>
 </form>
 
-<div [style.display]="'flex'" [style.justify-content]="'flex-end'" [style.gap.px]="10" [style.margin-top.px]="20">
+<div class="action-row">
     <button kendoButton (click)="onCancel()">Cancel</button>
     <button kendoButton themeColor="primary" (click)="onSave()">{{ application ? 'Update' : 'Create' }}</button>
 </div>

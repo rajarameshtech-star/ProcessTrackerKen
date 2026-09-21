@@ -26,7 +26,8 @@ export const API_ENDPOINTS = {
     update: '/processes/{processId}/records/{recordId}',
     delete: '/processes/{processId}/records/{recordId}',
     submit: '/processes/{processId}/records/{recordId}/submit',
-    search: '/processes/{processId}/records/search'
+    search: '/processes/{processId}/records/search',
+    getPriorities: '/processes/{processId}/records/priorities'
   },
   processes: {
     getDefinition: '/processes/{processId}'

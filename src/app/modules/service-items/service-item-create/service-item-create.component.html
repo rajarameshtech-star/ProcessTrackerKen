@@ -1,27 +1,38 @@
 <!-- modules/service-items/service-item-create/service-item-create.component.html -->
-<div [style.border]="'1px solid #ddd'" [style.padding.px]="15" [style.margin-bottom.px]="20"
-  [style.border-radius.px]="4" [style.background-color]="'#fafafa'">
-  <h3>Create New Service Item</h3>
+<div class="bg-light p-md rounded mb-md" style="position: relative;">
+  <button kendoButton icon="close" (click)="onFormCancel()" themeColor="base" fillMode="flat"
+    style="position: absolute; top: 15px; right: 15px; z-index: 10;" title="Cancel">
+  </button>
+  <h3 class="mb-md" style="margin-top: 0;">Create New Service Item</h3>
 
-  <div [style.margin-bottom.px]="15">
-    <label [style.display]="'block'" [style.margin-bottom.px]="5">Application</label>
-    <kendo-dropdownlist [data]="applications" [(ngModel)]="selectedAppId" textField="title" valueField="id"
-      [valuePrimitive]="true" placeholder="Select Application">
-    </kendo-dropdownlist>
-  </div>
-
-  <div [style.margin-bottom.px]="15">
-    <label [style.display]="'block'" [style.margin-bottom.px]="5">Process Definition</label>
-    <kendo-dropdownlist [data]="processDefinitions" [(ngModel)]="selectedProcDefId" textField="name" valueField="id"
-      [valuePrimitive]="true" placeholder="Select Process Definition">
-    </kendo-dropdownlist>
-  </div>
-
-  @if (selectedAppId && selectedProcDefId) {
+  @if (contextResolved && selectedAppId && selectedProcDefId) {
   <div>
     <app-service-item-form [processDefinitionId]="selectedProcDefId" mode="create" (onSubmit)="onFormSubmit($event)"
       (onCancel)="onFormCancel()">
     </app-service-item-form>
+  </div>
+  } @else {
+  <div class="p-md bg-light rounded border-light">
+    <p class="text-muted mb-md">Select a specific layout to begin documenting this service item.</p>
+
+    <div class="mb-md">
+      <label class="block font-medium mb-sm">Application Engine</label>
+      <kendo-dropdownlist [data]="applications" [(ngModel)]="selectedAppId" [valuePrimitive]="true" textField="title"
+        valueField="id" placeholder="Select Architecture..." class="w-full">
+      </kendo-dropdownlist>
+    </div>
+
+    <div class="mb-md">
+      <label class="block font-medium mb-sm">Schema Definitions</label>
+      <kendo-dropdownlist [data]="processDefinitions" [(ngModel)]="selectedProcDefId" [valuePrimitive]="true"
+        textField="name" valueField="id" placeholder="Select Object Scope..." class="w-full">
+      </kendo-dropdownlist>
+    </div>
+
+    <div class="mb-md flex-row gap-sm">
+      <button kendoButton themeColor="primary" (click)="beginCreation()">Continue</button>
+      <button kendoButton (click)="onFormCancel()">Cancel</button>
+    </div>
   </div>
   }
 </div>

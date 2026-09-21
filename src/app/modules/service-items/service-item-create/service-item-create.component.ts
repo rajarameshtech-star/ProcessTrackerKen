@@ -1,5 +1,5 @@
 // modules/service-items/service-item-create/service-item-create.component.ts
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -25,6 +25,9 @@ export class ServiceItemCreateComponent implements OnInit {
   selectedAppId: number | null = null;
   selectedProcDefId: number | null = null;
   loading = false;
+  contextResolved = false;
+
+  @ViewChild(ServiceItemFormComponent) formComponent!: ServiceItemFormComponent;
 
   constructor(
     private applicationService: ApplicationService,
@@ -37,37 +40,39 @@ export class ServiceItemCreateComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.queryParams.subscribe(params => {
-      if (params['applicationId']) {
-        this.selectedAppId = Number(params['applicationId']);
-      }
-      if (params['processDefinitionId']) {
-        this.selectedProcDefId = Number(params['processDefinitionId']);
+      if (params['applicationId']) this.selectedAppId = Number(params['applicationId']);
+      if (params['processDefinitionId']) this.selectedProcDefId = Number(params['processDefinitionId']);
+
+      if (this.selectedAppId && this.selectedProcDefId) {
+        this.contextResolved = true;
+      } else {
+        this.loadApplications();
+        this.loadProcessDefinitions();
       }
     });
-
-    this.loadApplications();
-    this.loadProcessDefinitions();
   }
 
   loadApplications(): void {
     this.applicationService.getAllActiveApplications(1, 100).subscribe({
-      next: (response) => {
-        this.applications = response.records;
-      },
+      next: (response) => this.applications = response.records,
       error: (err) => console.error('Error loading applications:', err)
     });
   }
 
   loadProcessDefinitions(): void {
     this.processDefinitionService.getAllActiveProcessDefinitions(1, 100).subscribe({
-      next: (response) => {
-        this.processDefinitions = response.records;
-      },
+      next: (response) => this.processDefinitions = response.records,
       error: (err) => console.error('Error loading process definitions:', err)
     });
   }
 
-
+  beginCreation(): void {
+    if (!this.selectedAppId || !this.selectedProcDefId) {
+      this.toastService.showError('Please select both Application and Process Definition');
+      return;
+    }
+    this.contextResolved = true;
+  }
 
   onFormSubmit(data: any): void {
     if (!this.selectedAppId || !this.selectedProcDefId) {
@@ -76,7 +81,7 @@ export class ServiceItemCreateComponent implements OnInit {
     }
 
     this.loading = true;
-    this.processRecordService.createRecord(this.selectedProcDefId, this.selectedAppId, { fieldValues: data }).subscribe({
+    this.processRecordService.createRecord(this.selectedProcDefId, this.selectedAppId, data).subscribe({
       next: (response) => {
         this.toastService.showSuccess('Service Item created successfully');
         this.loading = false;
@@ -90,7 +95,12 @@ export class ServiceItemCreateComponent implements OnInit {
       },
       error: (err) => {
         console.error('Error creating service item:', err);
-        this.toastService.showError(err.error?.title || 'Failed to create service item');
+        if (err.status === 400 && err.error && err.error.errors) {
+          this.formComponent.setServerErrors(err.error.errors);
+          this.toastService.showError('Validation Failed. Please check the highlighted fields.');
+        } else {
+          this.toastService.showError(err.error?.title || 'Failed to create service item');
+        }
         this.loading = false;
       }
     });

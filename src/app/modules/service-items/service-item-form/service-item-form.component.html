@@ -1,50 +1,72 @@
 <!-- modules/service-items/service-item-form/service-item-form.component.html -->
-<div [style.border]="'1px solid #ddd'" [style.padding.px]="15" [style.border-radius.px]="4"
-  [style.background-color]="'#fafafa'">
+<div class="border-light p-md rounded bg-light">
   @if (mode !== 'create') {
   <h3>{{ mode === 'edit' ? 'Edit' : 'View' }} Service Item</h3>
   }
 
-  <form [formGroup]="form" [style.display]="'flex'" [style.flex-direction]="'column'" [style.gap.px]="15">
+  <form [formGroup]="form" class="flex-col gap-lg">
+
+    <!-- Base Core Properties -->
+    <div class="flex-col gap-sm">
+      <label class="font-medium">Priority <span class="text-danger">*</span></label>
+      <kendo-dropdownlist [data]="priorities" formControlName="priority"
+        [defaultItem]="defaultPriorityItem"></kendo-dropdownlist>
+      @if (getServerError('priority')) {
+      <div class="text-danger mt-sm font-medium" style="font-size: 13px;">{{ getServerError('priority') }}</div>
+      }
+    </div>
+
+    <div class="flex-col gap-sm">
+      <label class="font-medium">Assigned To</label>
+      <kendo-textbox formControlName="assignedTo" placeholder="Assignee User/Email"></kendo-textbox>
+      @if (getServerError('assignedTo')) {
+      <div class="text-danger mt-sm font-medium" style="font-size: 13px;">{{ getServerError('assignedTo') }}</div>
+      }
+    </div>
+
+    <div class="flex-col gap-sm">
+      <label class="font-medium">Expected Target Date</label>
+      <kendo-datetimepicker formControlName="expectedDueDate"></kendo-datetimepicker>
+      @if (getServerError('expectedDueDate')) {
+      <div class="text-danger mt-sm font-medium" style="font-size: 13px;">{{ getServerError('expectedDueDate') }}</div>
+      }
+    </div>
+
+    <!-- Dynamic Form Elements via Metadata -->
     @for (field of processFields; track field.id) {
-    <div [style.display]="'flex'" [style.flex-direction]="'column'" [style.gap.px]="5">
-      <label [style.font-weight]="'500'">
+    <div class="flex-col gap-sm">
+      <label class="font-medium">
         {{ field.label }}
         @if (field.isRequired) {
-        <span [style.color]="'red'">*</span>
+        <span class="text-danger">*</span>
         }
       </label>
 
       <!-- Text, Email, Phone, Url Input -->
       @if (field.fieldType === FieldTypeText || field.fieldType === FieldTypeEmail || field.fieldType === FieldTypePhone
       || field.fieldType === FieldTypeUrl) {
-      <kendo-textbox [formControlName]="field.fieldName" [placeholder]="field.placeholder || ''">
-      </kendo-textbox>
+      <kendo-textbox [formControlName]="field.fieldName" [placeholder]="field.placeholder || ''"></kendo-textbox>
       }
 
       <!-- TextArea -->
       @if (field.fieldType === FieldTypeTextArea) {
       <textarea [formControlName]="field.fieldName" [placeholder]="field.placeholder || ''"
-        [style.border]="'1px solid #ccc'" [style.padding.px]="8" [style.border-radius.px]="4" rows="4">
-          </textarea>
+        class="border-input p-sm rounded" rows="4"></textarea>
       }
 
       <!-- Number Input -->
       @if (field.fieldType === FieldTypeNumber) {
-      <kendo-numerictextbox [formControlName]="field.fieldName">
-      </kendo-numerictextbox>
+      <kendo-numerictextbox [formControlName]="field.fieldName"></kendo-numerictextbox>
       }
 
       <!-- Date Input -->
       @if (field.fieldType === FieldTypeDate) {
-      <kendo-datepicker [formControlName]="field.fieldName">
-      </kendo-datepicker>
+      <kendo-datepicker [formControlName]="field.fieldName"></kendo-datepicker>
       }
 
       <!-- DateTime Input -->
       @if (field.fieldType === FieldTypeDateTime) {
-      <kendo-datetimepicker [formControlName]="field.fieldName">
-      </kendo-datetimepicker>
+      <kendo-datetimepicker [formControlName]="field.fieldName"></kendo-datetimepicker>
       }
 
       <!-- Dropdown -->
@@ -58,19 +80,21 @@
       @if (field.fieldType === FieldTypeCheckbox) {
       <input type="checkbox" [formControlName]="field.fieldName">
       }
+
+      @if (getServerError(field.fieldName)) {
+      <div class="text-danger mt-sm font-medium" style="font-size: 13px;">{{ getServerError(field.fieldName) }}</div>
+      }
     </div>
     }
 
-    <div [style.display]="'flex'" [style.justify-content]="'space-between'" [style.align-items]="'center'"
-      [style.margin-top.px]="20">
+    <div class="flex-row justify-between mt-lg">
 
       <!-- Mark as Complete Hook purely limited to View/Edit -->
-      <div [style.display]="'flex'" [style.gap.px]="10">
+      <div class="flex-row gap-md">
         @if (loadedRecord) {
         @if (loadedRecord.recordStatus === 'Submitted') {
-        <span [style.color]="'green'" [style.font-weight]="'600'" [style.display]="'flex'"
-          [style.align-items]="'center'">
-          <span class="k-icon k-i-check k-icon-md" [style.margin-right.px]="5"></span> Completed
+        <span class="text-success font-semibold flex-row">
+          <span class="k-icon k-i-check k-icon-md mr-sm"></span> Completed
         </span>
         } @else {
         <button kendoButton type="button" themeColor="success" (click)="onMarkCompletedClick()">
@@ -81,10 +105,12 @@
       </div>
 
       <!-- Native Cancel / Save Operations -->
-      <div [style.display]="'flex'" [style.gap.px]="10">
+      <div class="flex-row gap-md">
+        @if (!hideDefaultCancel) {
         <button kendoButton type="button" (click)="onCancelClick()">
           Cancel
         </button>
+        }
         @if (mode !== 'view') {
         <button kendoButton type="button" appearance="filled" [disabled]="loading" (click)="onSubmitClick()"
           themeColor="primary">
@@ -99,14 +125,11 @@
 <!-- Dedicated Complete Submission Warning Modal -->
 @if (isSubmitDialogOpen) {
 <kendo-dialog title="Mark Record as Completed" (close)="isSubmitDialogOpen = false" [width]="450">
-  <div [style.margin-bottom.px]="15">
-    <label [style.display]="'block'" [style.font-weight]="'500'" [style.margin-bottom.px]="5">Closing Notes
-      (Optional)</label>
-    <textarea [(ngModel)]="submitNotes" rows="4" [style.width]="'100%'" [style.border]="'1px solid #ccc'"
-      [style.padding.px]="8" [style.border-radius.px]="4">
-      </textarea>
+  <div class="mb-md">
+    <label class="block font-medium mb-sm">Closing Notes (Optional)</label>
+    <textarea [(ngModel)]="submitNotes" rows="4" class="w-full border-input p-sm rounded"></textarea>
   </div>
-  <div [style.display]="'flex'" [style.justify-content]="'flex-end'" [style.gap.px]="10">
+  <div class="flex-row justify-end gap-md">
     <button kendoButton (click)="isSubmitDialogOpen = false">Cancel</button>
     <button kendoButton themeColor="success" [disabled]="loading" (click)="confirmSubmit()">Confirm Submit</button>
   </div>

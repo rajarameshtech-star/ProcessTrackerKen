@@ -6,7 +6,11 @@ import { ButtonsModule } from '@progress/kendo-angular-buttons';
   selector: 'app-process-types',
   standalone: true,
   imports: [ProcessDefinitionListComponent, ButtonsModule],
-  templateUrl: './process-types.component.html'
+  templateUrl: './process-types.component.html',
+  styles: [`
+    .header-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .header-title { margin: 0; }
+  `]
 })
 export class ProcessTypesComponent {
   @ViewChild(ProcessDefinitionListComponent) list!: ProcessDefinitionListComponent;
